@@ -114,11 +114,32 @@ git config --global core.autocrlf false
 
 ## API endpoints
 
-| Endpoint             | Description                    |
-| :------------------- | :----------------------------- |
-| `GET: /health`       | Health                         |
-| `GET: /example    `  | Example API (remove as needed) |
-| `GET: /example/<id>` | Example API (remove as needed) |
+| Endpoint                | Description |
+| :---------------------- | :---------- |
+| `GET: /health`          | Health      |
+| `GET: /scoring/{grant}` | Scoring     |
+
+### Scoring Endpoint Details
+
+The scoring endpoint evaluates a grant application based on the grant type and county.
+
+#### Path Parameters
+
+- `grant` (required): The grant identifier. Currently, only `water-management` is supported.
+
+#### Query Parameters
+
+- `county` (optional): The county for scoring.
+
+#### Scoring Logic
+
+For the `water-management` grant, the following scoring applies:
+
+| County      | Score | Band      |
+| :---------- | :---- | :-------- |
+| `BERKSHIRE` | 75    | `Strong`  |
+| `BRISTOL`   | 25    | `Weak`    |
+| Other/None  | 50    | `Average` |
 
 ## Development helpers
 
