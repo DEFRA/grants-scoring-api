@@ -8,6 +8,7 @@ convict.addFormats(convictFormatWithValidator)
 
 const isProduction = process.env.NODE_ENV === 'production'
 const isTest = process.env.NODE_ENV === 'test'
+const serviceName = 'grants-scoring-api'
 
 export const config = convict({
   serviceVersion: {
@@ -32,7 +33,7 @@ export const config = convict({
   serviceName: {
     doc: 'Api Service Name',
     format: String,
-    default: 'grants-scoring-api'
+    default: serviceName
   },
   cdpEnvironment: {
     doc: 'The CDP environment the app is running in. With the addition of "local" for local development',
@@ -125,6 +126,40 @@ export const config = convict({
       format: String,
       default: 'x-cdp-request-id',
       env: 'TRACING_HEADER'
+    }
+  },
+  serviceAuth: {
+    enabled: {
+      doc: 'Enable service-to-service JWT authentication on all non-health routes',
+      format: Boolean,
+      default: isProduction,
+      env: 'SERVICE_AUTH_ENABLED'
+    },
+    jwksUri: {
+      doc: 'JWKS endpoint URI for verifying service JWT tokens (CDP_JWT_JWKS_URI)',
+      format: String,
+      nullable: true,
+      default: null,
+      env: 'CDP_JWT_JWKS_URI'
+    },
+    issuer: {
+      doc: 'Expected JWT issuer (CDP_JWT_ISSUER)',
+      format: String,
+      nullable: true,
+      default: null,
+      env: 'CDP_JWT_ISSUER'
+    },
+    audience: {
+      doc: 'Expected JWT audience - should match the service name',
+      format: String,
+      default: serviceName,
+      env: 'SERVICE_AUTH_AUDIENCE'
+    },
+    allowedServices: {
+      doc: 'Comma-separated list of service names permitted to call this API (e.g. grants-ui,grants-ui-backend). Leave empty to allow any valid JWT.',
+      format: String,
+      default: '',
+      env: 'SERVICE_AUTH_ALLOWED_SERVICES'
     }
   }
 })
