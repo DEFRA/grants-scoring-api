@@ -1,5 +1,20 @@
 import hapi from '@hapi/hapi'
 
+vi.mock('mongodb', () => {
+  const mockClient = {
+    db: vi.fn().mockReturnThis(),
+    collection: vi.fn().mockReturnThis(),
+    createIndex: vi.fn().mockResolvedValue({}),
+    createIndexes: vi.fn().mockResolvedValue({}),
+    close: vi.fn().mockResolvedValue({})
+  }
+  return {
+    MongoClient: {
+      connect: vi.fn().mockResolvedValue(mockClient)
+    }
+  }
+})
+
 describe('#startServer', () => {
   let createServerSpy
   let hapiServerSpy
@@ -8,6 +23,7 @@ describe('#startServer', () => {
 
   beforeAll(async () => {
     vi.stubEnv('PORT', '3098')
+
     createServerImport = await import('#/server.js')
     startServerImport = await import('./start-server.js')
 

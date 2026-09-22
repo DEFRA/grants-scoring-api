@@ -12,19 +12,19 @@ services:
     volumes:
       - ./compose/floci/start.d:/etc/floci/init/start.d:ro
     networks:
-      - cdp-tenant
+      - grants-scoring-net
 
   redis:
     image: redis:7.2.3-alpine3.18
     ports:
       - '6379:6379'
     networks:
-      - cdp-tenant
+      - grants-scoring-net
 
   mongodb:
     image: mongo:7.0.28
     networks:
-      - cdp-tenant
+      - grants-scoring-net
     ports:
       - '27017:27017'
     volumes:
@@ -60,10 +60,11 @@ services:
       NODE_ENV: development
       MONGO_URI: mongodb://mongodb:27017/
     networks:
-      - cdp-tenant
+      - grants-scoring-net
     volumes:
       - ./src:/home/node/src
       - ./package.json:/home/node/package.json
+      - ./.env:/home/node/.env
 
 ################################################################################
 
@@ -71,6 +72,6 @@ volumes:
   mongodb-data:
 
 networks:
-  cdp-tenant:
+  grants-scoring-net:
     driver: bridge
-    name: cdp-tenant
+    name: grants-scoring-net
