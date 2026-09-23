@@ -16,7 +16,7 @@ export const serviceAuth = {
       const isLocal = config.get('cdpEnvironment') === 'local'
       if (isLocal) {
         server.auth.scheme('local', () => ({
-          authenticate: (request, h) => {
+          authenticate: (_request, h) => {
             return h.authenticated({
               credentials: {
                 sub: `s/${LOCAL_SUBJECT}`,
