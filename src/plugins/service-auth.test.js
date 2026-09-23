@@ -37,7 +37,7 @@ describe('serviceAuth plugin', () => {
         ext: vi.fn(),
         auth: {
           strategy: vi.fn((name, type, options) => {
-            if (name === 'service-jwt') capturedValidate = options.validate
+            if (name === 'service') capturedValidate = options.validate
           }),
           scheme: vi.fn(),
           default: vi.fn()
@@ -214,18 +214,10 @@ describe('serviceAuth plugin', () => {
       const server = Hapi.server()
       config.get.mockImplementation((key) => {
         if (key === 'cdpEnvironment') return 'prod'
-        if (key === 'serviceAuth.enabled') return false
         return defaultConfigValues[key] ?? null
       })
 
       await server.register(serviceAuth)
-
-      // Register a dummy scheme for 'service-jwt' so auth.test doesn't throw "Unknown authentication strategy"
-      server.auth.scheme('dummy-jwt', () => ({
-        authenticate: (request, h) =>
-          h.authenticated({ credentials: { serviceName: 'test-service' } })
-      }))
-      server.auth.strategy('service-jwt', 'dummy-jwt')
 
       server.route({
         method: 'GET',
@@ -240,12 +232,8 @@ describe('serviceAuth plugin', () => {
         headers: { authorization: 'Bearer xxx.yyy.zzz' }
       })
 
-      expect(res.statusCode).toBe(StatusCodes.OK)
-      expect(res.result).toMatchObject({
-        serviceName: 'test-service',
-        authenticated: true,
-        type: 'jwt'
-      })
+      // In prod with no real JWKS it should be unauthorized
+      expect(res.statusCode).toBe(StatusCodes.UNAUTHORIZED)
       await server.stop()
     })
   })

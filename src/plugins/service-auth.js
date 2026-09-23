@@ -11,69 +11,63 @@ export const serviceAuth = {
   plugin: {
     name: 'service-auth',
     register: async (server) => {
-      await server.register(Jwt)
-
-      if (config.get('serviceAuth.enabled')) {
-        const allowedServices = config
-          .get('serviceAuth.allowedServices')
-          .split(',')
-          .map((s) => s.trim())
-          .filter(Boolean)
-
-        server.auth.strategy('service-jwt', 'jwt', {
-          keys: {
-            uri: config.get('serviceAuth.jwksUri')
-          },
-          verify: {
-            aud: config.get('serviceAuth.audience'),
-            iss: config.get('serviceAuth.issuer'),
-            sub: false
-          },
-          validate: (artifacts) => {
-            const sub = artifacts.decoded.payload.sub
-            if (!sub) {
-              logger.warn('Service-to-service auth rejected: missing sub claim')
-              throw Boom.unauthorized()
-            }
-
-            const serviceName = sub.split('/').pop()
-            if (
-              allowedServices.length > 0 &&
-              !allowedServices.includes(serviceName)
-            ) {
-              logger.warn(
-                `Service-to-service auth rejected: service '${serviceName}' is not in allowed list`
-              )
-              throw Boom.unauthorized()
-            }
-
-            return { isValid: true, credentials: { sub, serviceName } }
-          }
-        })
-      }
-
       addServiceAccessPreHandler(server)
 
-      server.auth.scheme('service-custom', () => ({
-        authenticate: async (request, h) => {
-          const isLocalEnvironment = config.get('cdpEnvironment') === 'local'
-          if (isLocalEnvironment) {
+      const isLocal = config.get('cdpEnvironment') === 'local'
+      if (isLocal) {
+        server.auth.scheme('local', () => ({
+          authenticate: (request, h) => {
             return h.authenticated({
-              credentials: { authenticated: true, serviceName: LOCAL_SUBJECT }
+              credentials: {
+                sub: `s/${LOCAL_SUBJECT}`,
+                serviceName: LOCAL_SUBJECT
+              }
             })
           }
+        }))
+        server.auth.strategy('service', 'local')
+        server.auth.default('service')
+        return
+      }
 
-          const authorizationHeader = request.headers.authorization
-          if (!authorizationHeader?.startsWith('Bearer ')) {
+      await server.register(Jwt)
+
+      const allowedServices = config
+        .get('serviceAuth.allowedServices')
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
+
+      server.auth.strategy('service', 'jwt', {
+        keys: {
+          uri: config.get('serviceAuth.jwksUri')
+        },
+        verify: {
+          aud: config.get('serviceAuth.audience'),
+          iss: config.get('serviceAuth.issuer'),
+          sub: false
+        },
+        validate: (artifacts) => {
+          const sub = artifacts.decoded.payload.sub
+          if (!sub) {
+            logger.warn('Service-to-service auth rejected: missing sub claim')
             throw Boom.unauthorized()
           }
-          const { credentials } = await server.auth.test('service-jwt', request)
-          return h.authenticated({
-            credentials: { ...credentials, authenticated: true, type: 'jwt' }
-          })
+
+          const serviceName = sub.split('/').pop()
+          if (
+            allowedServices.length > 0 &&
+            !allowedServices.includes(serviceName)
+          ) {
+            logger.warn(
+              `Service-to-service auth rejected: service '${serviceName}' is not in allowed list`
+            )
+            throw Boom.unauthorized()
+          }
+
+          return { isValid: true, credentials: { sub, serviceName } }
         }
-      }))
-      server.auth.strategy('service', 'service-custom')
+      })
       server.auth.default('service')
     }
   }
@@ -86,8 +80,8 @@ const addServiceAccessPreHandler = (server) => {
 
     if (allowedSubjects) {
       allowedSubjects.push(LOCAL_SUBJECT) // Always allow local services for testing purposes
-      const { serviceName } = request.auth.credentials
 
+      const { serviceName } = request.auth.credentials
       if (!serviceName || !allowedSubjects.includes(serviceName)) {
         logger.warn(
           `Access denied for subject '${serviceName}' to restricted endpoint '${request.path}'`
