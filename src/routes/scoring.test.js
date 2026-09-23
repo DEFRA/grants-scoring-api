@@ -45,14 +45,23 @@ describe('Scoring Route', () => {
     expect(res.result).toEqual({ score: 25, band: 'Weak' })
   })
 
-  it('should return Average if county is anything else', async () => {
+  it('should return Average if county is CHESHIRE', async () => {
     const res = await server.inject({
       method: 'GET',
-      url: '/scoring/water-management?county=LONDON'
+      url: '/scoring/water-management?county=CHESHIRE'
     })
 
     expect(res.statusCode).toBe(200)
     expect(res.result).toEqual({ score: 50, band: 'Average' })
+  })
+
+  it('should return 400 if county is empty string', async () => {
+    const res = await server.inject({
+      method: 'GET',
+      url: '/scoring/water-management?county='
+    })
+
+    expect(res.statusCode).toBe(400)
   })
 
   it('should return Average if county is missing', async () => {

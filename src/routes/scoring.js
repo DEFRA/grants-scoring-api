@@ -1,11 +1,18 @@
 import Joi from 'joi'
 import Boom from '@hapi/boom'
 
+export const GRANTS_UI_SUBJECT = 'grants-ui'
+
 export const scoring = [
   {
     method: 'GET',
     path: '/scoring/{grant}',
     options: {
+      plugins: {
+        'service-auth': {
+          allowedSubjects: [GRANTS_UI_SUBJECT]
+        }
+      },
       validate: {
         params: Joi.object({
           grant: Joi.string().required().description('The grant identifier')
