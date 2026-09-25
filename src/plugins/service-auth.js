@@ -30,14 +30,28 @@ export const serviceAuth = {
         return
       }
 
+      logger.error(`BH temp - registering jwt`)
       await server.register(Jwt)
 
-      const allowedServices = config
-        .get('serviceAuth.allowedServices')
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean)
+      logger.error(`BH temp - checking config`)
+      const jwksUri = config.get('serviceAuth.jwksUri')
+      const audience = config.get('serviceAuth.audience')
+      const issuer = config.get('serviceAuth.issuer')
+      const allowedServicesConfig = config.get('serviceAuth.allowedServices')
+      if (!jwksUri) {
+        throw new Error('Missing serviceAuth.jwksUri')
+      }
+      if (!audience) {
+        throw new Error('Missing serviceAuth.audience')
+      }
+      if (!issuer) {
+        throw new Error('Missing serviceAuth.issuer')
+      }
+      if (typeof allowedServicesConfig !== 'string') {
+        throw new Error('Missing serviceAuth.allowedServices')
+      }
 
+      logger.error(`BH temp - registering jwt strategy`)
       server.auth.strategy('service', 'jwt', {
         keys: {
           uri: config.get('serviceAuth.jwksUri')
@@ -55,10 +69,8 @@ export const serviceAuth = {
           }
 
           const serviceName = sub.split('/').pop()
-          if (
-            allowedServices.length > 0 &&
-            !allowedServices.includes(serviceName)
-          ) {
+
+          if (serviceNotAllowed(serviceName)) {
             logger.warn(
               `Service-to-service auth rejected: service '${serviceName}' is not in allowed list`
             )
@@ -68,6 +80,8 @@ export const serviceAuth = {
           return { isValid: true, credentials: { sub, serviceName } }
         }
       })
+
+      logger.error(`BH temp - registering default strategy`)
       server.auth.default('service')
     }
   }
@@ -92,4 +106,15 @@ const addServiceAccessPreHandler = (server) => {
 
     return h.continue
   })
+}
+
+const serviceNotAllowed = (serviceName) => {
+  const allowedServices = config
+    .get('serviceAuth.allowedServices')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+
+  // service allowed if allowedServices is empty
+  return allowedServices.length > 0 && !allowedServices.includes(serviceName)
 }
