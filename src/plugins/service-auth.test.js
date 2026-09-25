@@ -14,7 +14,6 @@ vi.mock('../common/helpers/logging/logger.js', () => {
 
 describe('serviceAuth plugin', () => {
   const defaultConfigValues = {
-    'serviceAuth.enabled': true,
     'serviceAuth.allowedServices': '',
     'serviceAuth.jwksUri': 'http://jwks',
     'serviceAuth.audience': 'test-audience',
