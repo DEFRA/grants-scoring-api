@@ -1,5 +1,6 @@
 import Jwt from '@hapi/jwt'
 import Boom from '@hapi/boom'
+import Wreck from '@hapi/wreck'
 import { config } from '../config.js'
 import { createLogger } from '../common/helpers/logging/logger.js'
 
@@ -30,10 +31,8 @@ export const serviceAuth = {
         return
       }
 
-      logger.error(`BH temp - registering jwt`)
       await server.register(Jwt)
 
-      logger.error(`BH temp - checking config`)
       const jwksUri = config.get('serviceAuth.jwksUri')
       const audience = config.get('serviceAuth.audience')
       const issuer = config.get('serviceAuth.issuer')
@@ -51,11 +50,22 @@ export const serviceAuth = {
         throw new Error('Missing serviceAuth.allowedServices')
       }
 
-      logger.error(`BH temp - registering jwt strategy`)
+      let jwksKeys = jwksUri
+      const httpProxy = config.get('httpProxy')
+      if (httpProxy) {
+        try {
+          const { HttpsProxyAgent } = await import('https-proxy-agent')
+          const agent = new HttpsProxyAgent(httpProxy)
+          const { payload } = await Wreck.get(jwksUri, { agent, json: true })
+          jwksKeys = payload.keys
+        } catch (err) {
+          logger.error(`Failed to fetch JWKS via proxy: ${err.message}`)
+          // Fallback to uri and hope for the best, or rethrow if mandatory
+        }
+      }
+
       server.auth.strategy('service', 'jwt', {
-        keys: {
-          uri: config.get('serviceAuth.jwksUri')
-        },
+        keys: jwksKeys,
         verify: {
           aud: config.get('serviceAuth.audience'),
           iss: config.get('serviceAuth.issuer'),
@@ -81,7 +91,6 @@ export const serviceAuth = {
         }
       })
 
-      logger.error(`BH temp - registering default strategy`)
       server.auth.default('service')
     }
   }
