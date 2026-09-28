@@ -10,6 +10,7 @@ import { failAction } from '#/common/helpers/fail-action.js'
 import { pulse } from '#/plugins/pulse.js'
 import { requestTracing } from '#/plugins/request-tracing.js'
 import { metrics } from '@defra/cdp-metrics'
+import Jwt from '@hapi/jwt'
 import { serviceAuth } from '#/plugins/service-auth.js'
 
 export async function createServer() {
@@ -56,6 +57,7 @@ export async function createServer() {
       plugin: mongoDb,
       options: config.get('mongo')
     },
+    Jwt,
     serviceAuth,
     router
   ])

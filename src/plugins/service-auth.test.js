@@ -1,5 +1,6 @@
 import Hapi from '@hapi/hapi'
 import { StatusCodes } from 'http-status-codes'
+import Jwt from '@hapi/jwt'
 import { serviceAuth } from './service-auth.js'
 import { config } from '../config.js'
 
@@ -83,7 +84,7 @@ describe('serviceAuth plugin', () => {
         if (key === 'cdpEnvironment') return 'local'
         return defaultConfigValues[key] ?? null
       })
-      await server.register(serviceAuth)
+      await server.register([Jwt, serviceAuth])
 
       server.route({
         method: 'GET',
@@ -102,7 +103,7 @@ describe('serviceAuth plugin', () => {
 
     it('should deny access if serviceName is not in allowedSubjects', async () => {
       const server = Hapi.server()
-      await server.register(serviceAuth)
+      await server.register([Jwt, serviceAuth])
 
       server.auth.scheme('test-scheme', () => ({
         authenticate: (request, h) =>
@@ -127,7 +128,7 @@ describe('serviceAuth plugin', () => {
 
     it('should deny access if serviceName is missing from credentials', async () => {
       const server = Hapi.server()
-      await server.register(serviceAuth)
+      await server.register([Jwt, serviceAuth])
 
       server.auth.scheme('test-scheme', () => ({
         authenticate: (request, h) => h.authenticated({ credentials: {} })
@@ -150,14 +151,14 @@ describe('serviceAuth plugin', () => {
     })
   })
 
-  describe('service-custom scheme', () => {
+  describe('service scheme', () => {
     it('should bypass auth in local environment', async () => {
       const server = Hapi.server()
       config.get.mockImplementation((key) => {
         if (key === 'cdpEnvironment') return 'local'
         return defaultConfigValues[key] ?? null
       })
-      await server.register(serviceAuth)
+      await server.register([Jwt, serviceAuth])
       server.route({
         method: 'GET',
         path: '/t',
@@ -175,7 +176,7 @@ describe('serviceAuth plugin', () => {
         if (key === 'cdpEnvironment') return 'prod'
         return defaultConfigValues[key] ?? null
       })
-      await server.register(serviceAuth)
+      await server.register([Jwt, serviceAuth])
       server.route({
         method: 'GET',
         path: '/t',
@@ -193,7 +194,7 @@ describe('serviceAuth plugin', () => {
         if (key === 'cdpEnvironment') return 'prod'
         return defaultConfigValues[key] ?? null
       })
-      await server.register(serviceAuth)
+      await server.register([Jwt, serviceAuth])
       server.route({
         method: 'GET',
         path: '/t',
@@ -216,7 +217,7 @@ describe('serviceAuth plugin', () => {
         return defaultConfigValues[key] ?? null
       })
 
-      await server.register(serviceAuth)
+      await server.register([Jwt, serviceAuth])
 
       server.route({
         method: 'GET',
