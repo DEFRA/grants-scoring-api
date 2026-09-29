@@ -1,7 +1,12 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import { scoring } from './scoring.js'
 import Hapi from '@hapi/hapi'
 import { failAction } from '#/common/helpers/fail-action.js'
+import * as waterManagementHelper from '#/common/helpers/scoring/water-management.js'
+
+vi.mock('#/common/helpers/scoring/water-management.js', () => ({
+  calculateScore: vi.fn()
+}))
 
 describe('Scoring Route', () => {
   let server
@@ -17,6 +22,7 @@ describe('Scoring Route', () => {
         }
       }
     })
+    server.decorate('server', 'db', {}) // Add mock db
     server.route(scoring)
     await server.initialize()
   })
@@ -25,34 +31,46 @@ describe('Scoring Route', () => {
     await server.stop()
   })
 
-  it('should return Strong if county is BERKSHIRE', async () => {
+  it('should return mocked scores for water-management grant', async () => {
+    waterManagementHelper.calculateScore.mockResolvedValue({
+      totalScore: 100,
+      sectorScore: 25,
+      scarcityScore: 60,
+      collaborationScore: 10,
+      planningAbstractionScore: 5
+    })
+
     const res = await server.inject({
       method: 'GET',
-      url: '/scoring/water-management?county=BERKSHIRE'
+      url: '/scoring/water-management?growing=food&easting=380712&northing=396269&supplyOthers=5%2B&planning=true&abstraction=Y'
     })
 
     expect(res.statusCode).toBe(200)
-    expect(res.result).toEqual({ score: 75, band: 'Strong' })
+    expect(res.result).toEqual({
+      totalScore: 100,
+      sectorScore: 25,
+      scarcityScore: 60,
+      collaborationScore: 10,
+      planningAbstractionScore: 5
+    })
+    expect(waterManagementHelper.calculateScore).toHaveBeenCalledWith(
+      expect.anything(), // db
+      'food', // growing
+      380712, // easting (parsed as number by Joi)
+      396269, // northing (parsed as number by Joi)
+      '5+', // supplyOthers
+      true, // planning (parsed as boolean by Joi)
+      'Y' // abstraction (parsed as string by Joi)
+    )
   })
 
-  it('should return Weak if county is BRISTOL', async () => {
+  it('should return 400 if abstraction is invalid', async () => {
     const res = await server.inject({
       method: 'GET',
-      url: '/scoring/water-management?county=BRISTOL'
+      url: '/scoring/water-management?abstraction=INVALID'
     })
 
-    expect(res.statusCode).toBe(200)
-    expect(res.result).toEqual({ score: 25, band: 'Weak' })
-  })
-
-  it('should return Average if county is CHESHIRE', async () => {
-    const res = await server.inject({
-      method: 'GET',
-      url: '/scoring/water-management?county=CHESHIRE'
-    })
-
-    expect(res.statusCode).toBe(200)
-    expect(res.result).toEqual({ score: 50, band: 'Average' })
+    expect(res.statusCode).toBe(400)
   })
 
   it('should return 400 if county is empty string', async () => {
@@ -64,14 +82,30 @@ describe('Scoring Route', () => {
     expect(res.statusCode).toBe(400)
   })
 
-  it('should return Average if county is missing', async () => {
+  it('should use default values for water-management grant if query is missing', async () => {
+    waterManagementHelper.calculateScore.mockResolvedValue({
+      totalScore: 100,
+      sectorScore: 25,
+      scarcityScore: 60,
+      collaborationScore: 10,
+      planningAbstractionScore: 5
+    })
+
     const res = await server.inject({
       method: 'GET',
       url: '/scoring/water-management'
     })
 
     expect(res.statusCode).toBe(200)
-    expect(res.result).toEqual({ score: 50, band: 'Average' })
+    expect(waterManagementHelper.calculateScore).toHaveBeenCalledWith(
+      expect.anything(), // db
+      'food', // growing
+      380712, // easting (default is number)
+      396269, // northing (default is number)
+      '5+', // supplyOthers
+      true, // planning
+      'NN' // abstraction (default)
+    )
   })
 
   it('should return 404 if grant is not water-management', async () => {
@@ -84,7 +118,7 @@ describe('Scoring Route', () => {
     expect(res.result.message).toBe('Unsupported grant')
   })
 
-  it('should return 400 if grant path variable is missing', async () => {
+  it('should return 404 if grant path variable is missing', async () => {
     const res = await server.inject({
       method: 'GET',
       url: '/scoring/'
