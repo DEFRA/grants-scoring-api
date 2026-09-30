@@ -2,7 +2,8 @@ import hapi from '@hapi/hapi'
 
 vi.mock('node:fs/promises', () => ({
   default: {
-    readFile: vi.fn().mockResolvedValue('[]')
+    readFile: vi.fn().mockResolvedValue('[]'),
+    readdir: vi.fn().mockResolvedValue([])
   }
 }))
 
