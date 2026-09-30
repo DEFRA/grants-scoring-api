@@ -124,7 +124,7 @@ export const calculateScarcityScore = async (logger, db, easting, northing) => {
  *  - British National Grid
  *  - Regular flat-top hexagons
  *  - 100 m between opposite sides
- *  - Hexagon centred at BNG (0, 0)
+ *  - Hexagon centred at BNG (0, 0) (?)
  *  - Tessellation pattern
  *
  * @param {number} easting
