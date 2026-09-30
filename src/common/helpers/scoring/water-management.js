@@ -119,6 +119,7 @@ export const calculateScarcityScore = async (db, easting, northing) => {
  *  - Regular flat-top hexagons
  *  - 100 m between opposite sides
  *  - Hexagon centred at BNG (0, 0)
+ *  - Tessellation pattern
  *
  * @param {number} easting
  * @param {number} northing
