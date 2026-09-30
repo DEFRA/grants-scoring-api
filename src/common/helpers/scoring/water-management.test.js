@@ -7,6 +7,7 @@ import {
 
 describe('water-management helper', () => {
   describe('calculateScore', () => {
+    const logger = { info: vi.fn() }
     it('should calculate the total score correctly with all positive factors', async () => {
       const db = {
         collection: vi.fn().mockReturnThis(),
@@ -14,6 +15,7 @@ describe('water-management helper', () => {
       }
 
       const result = await calculateScore(
+        logger,
         db,
         'food',
         380712,
@@ -38,7 +40,16 @@ describe('water-management helper', () => {
         findOne: vi.fn().mockResolvedValue({ score: 2 }) // score 2 maps to 25 in scarcity
       }
 
-      const result = await calculateScore(db, null, 0, 0, null, false, 'N')
+      const result = await calculateScore(
+        logger,
+        db,
+        null,
+        0,
+        0,
+        null,
+        false,
+        'N'
+      )
 
       expect(result).toEqual({
         totalScore: 25,
@@ -55,6 +66,7 @@ describe('water-management helper', () => {
         findOne: vi.fn().mockResolvedValue({ score: 2 })
       }
       const result = await calculateScore(
+        logger,
         db,
         'anything',
         0,
@@ -71,7 +83,16 @@ describe('water-management helper', () => {
         collection: vi.fn().mockReturnThis(),
         findOne: vi.fn().mockResolvedValue({ score: 2 })
       }
-      const result = await calculateScore(db, null, 0, 0, 'yes', false, 'N')
+      const result = await calculateScore(
+        logger,
+        db,
+        null,
+        0,
+        0,
+        'yes',
+        false,
+        'N'
+      )
       expect(result.collaborationScore).toBe(10)
     })
 
@@ -82,21 +103,22 @@ describe('water-management helper', () => {
       }
 
       expect(
-        (await calculateScore(db, null, 0, 0, false, true, 'Y'))
+        (await calculateScore(logger, db, null, 0, 0, false, true, 'Y'))
           .planningAbstractionScore
       ).toBe(5)
       expect(
-        (await calculateScore(db, null, 0, 0, false, false, 'Y'))
+        (await calculateScore(logger, db, null, 0, 0, false, false, 'Y'))
           .planningAbstractionScore
       ).toBe(0)
       expect(
-        (await calculateScore(db, null, 0, 0, false, true, false))
+        (await calculateScore(logger, db, null, 0, 0, false, true, false))
           .planningAbstractionScore
       ).toBe(0)
     })
   })
 
   describe('calculateScarcityScore', () => {
+    const logger = { info: vi.fn() }
     const mockDb = (score) => ({
       collection: vi.fn().mockReturnThis(),
       findOne: vi.fn().mockResolvedValue(score !== undefined ? { score } : null)
@@ -116,7 +138,7 @@ describe('water-management helper', () => {
 
       for (const { hexScore, expected } of cases) {
         const db = mockDb(hexScore)
-        const score = await calculateScarcityScore(db, 0, 0)
+        const score = await calculateScarcityScore(logger, db, 0, 0)
         expect(score).toBe(expected)
       }
     })
@@ -124,7 +146,7 @@ describe('water-management helper', () => {
     it('should throw an error for scores not in the mapping (0, 1)', async () => {
       for (const hexScore of [0, 1]) {
         const db = mockDb(hexScore)
-        await expect(calculateScarcityScore(db, 0, 0)).rejects.toThrow(
+        await expect(calculateScarcityScore(logger, db, 0, 0)).rejects.toThrow(
           'Hexagon score not found'
         )
       }
@@ -132,15 +154,16 @@ describe('water-management helper', () => {
 
     it('should throw an error if hexagon is not found', async () => {
       const db = mockDb(undefined)
-      await expect(calculateScarcityScore(db, 0, 0)).rejects.toThrow(
+      await expect(calculateScarcityScore(logger, db, 0, 0)).rejects.toThrow(
         'Hexagon not found for q: 0, r: 0'
       )
     })
   })
 
   describe('pointToHexagon', () => {
+    const logger = { info: vi.fn() }
     it('should correctly map (0,0) to hexagon (0,0)', () => {
-      expect(pointToHexagon(0, 0)).toEqual({ q: 0, r: 0 })
+      expect(pointToHexagon(logger, 0, 0)).toEqual({ q: 0, r: 0 })
     })
 
     it('should correctly map easting=380712, northing=396269 to correct hexagon', () => {
@@ -163,7 +186,10 @@ describe('water-management helper', () => {
       // diffZ is indeed largest.
       // roundedZ = -roundedX - roundedY = -4396 - (-6161) = 1765
       // result { q: 4396, r: 1765 }
-      expect(pointToHexagon(380712, 396269)).toEqual({ q: 4396, r: 1765 })
+      expect(pointToHexagon(logger, 380712, 396269)).toEqual({
+        q: 4396,
+        r: 1765
+      })
     })
 
     it('should handle rounding at boundaries', () => {
@@ -192,7 +218,7 @@ describe('water-management helper', () => {
       // -23.094 + 0.57735 * northing = 5.7735
       // 0.57735 * northing = 28.8675
       // northing = 50
-      expect(pointToHexagon(69.282, 50)).toEqual({ q: 1, r: 0 })
+      expect(pointToHexagon(logger, 69.282, 50)).toEqual({ q: 1, r: 0 })
     })
   })
 })

@@ -1,4 +1,5 @@
 export const calculateScore = async (
+  logger,
   db,
   growing,
   easting,
@@ -13,7 +14,12 @@ export const calculateScore = async (
     planning,
     abstraction
   )
-  const scarcityScore = await calculateScarcityScore(db, easting, northing)
+  const scarcityScore = await calculateScarcityScore(
+    logger,
+    db,
+    easting,
+    northing
+  )
 
   const totalScore =
     sectorScore + scarcityScore + collaborationScore + planningAbstractionScore
@@ -88,7 +94,7 @@ const calculatePlanningAbstractionScore = (planning, abstraction) => {
  * @param northing
  * @returns {Promise<number>}
  */
-export const calculateScarcityScore = async (db, easting, northing) => {
+export const calculateScarcityScore = async (logger, db, easting, northing) => {
   const scoreToPercentageMappings = {
     9: 60,
     8: 55,
@@ -100,7 +106,7 @@ export const calculateScarcityScore = async (db, easting, northing) => {
     2: 25
   }
 
-  const { q, r } = pointToHexagon(easting, northing)
+  const { q, r } = pointToHexagon(logger, easting, northing)
 
   const score = await getHexagonScoreFromDatastore(db, q, r)
 
@@ -123,9 +129,9 @@ export const calculateScarcityScore = async (db, easting, northing) => {
  *
  * @param {number} easting
  * @param {number} northing
- * @returns {{q: number, r: number}}
+ * @returns {{q: number, r: number}} - coordinates used to identify a hexagon, q ≈ x and r ≈ y
  */
-export const pointToHexagon = (easting, northing) => {
+export const pointToHexagon = (logger, easting, northing) => {
   const hexagon = {
     area: 100,
     qMultiplier: 2 / 3,
@@ -170,6 +176,13 @@ export const pointToHexagon = (easting, northing) => {
   } else {
     roundedZ = -roundedX - roundedY
   }
+
+  const centralEasting = (3 / 2) * hexagonSideLength * roundedX
+  const centralNorthing =
+    hexagonSideLength * hexagon.sqrt3 * (roundedZ + roundedX / 2)
+  logger.info(
+    `Selected hexagon central point: Easting ${centralEasting}, Northing ${centralNorthing}`
+  )
 
   return {
     q: roundedX,

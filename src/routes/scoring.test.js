@@ -55,7 +55,8 @@ describe('Scoring Route', () => {
       planningAbstractionScore: 5
     })
     expect(waterManagementHelper.calculateScore).toHaveBeenCalledWith(
-      expect.anything(), // db
+      undefined, // logger
+      {}, // db
       'food', // growing
       380712, // easting (parsed as number by Joi)
       396269, // northing (parsed as number by Joi)
@@ -99,7 +100,8 @@ describe('Scoring Route', () => {
 
     expect(res.statusCode).toBe(StatusCodes.OK)
     expect(waterManagementHelper.calculateScore).toHaveBeenCalledWith(
-      expect.anything(), // db
+      undefined, // logger
+      {}, // db
       'food', // growing
       380712, // easting (default is number)
       396269, // northing (default is number)

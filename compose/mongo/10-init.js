@@ -2,4 +2,5 @@
 /* eslint-disable no-undef */
 db = db.getSiblingDB('grants-scoring-api')
 
-db.hexagons.insertOne({ q: 40910, r: 16422, score: 9 })
+// Use easting: 380712 and northing: 396269
+db.hexagons.insertOne({ q: 4396, r: 1765, score: 9 })

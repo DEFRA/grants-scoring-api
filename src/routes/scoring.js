@@ -56,6 +56,7 @@ export const scoring = [
 
       if (grant === 'water-management') {
         const scores = await calculateWaterManagementScore(
+          request.server.logger,
           request.server.db,
           growing,
           easting,
