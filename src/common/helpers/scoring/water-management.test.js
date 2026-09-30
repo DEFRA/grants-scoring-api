@@ -1,5 +1,9 @@
 import { describe, it, expect, vi } from 'vitest'
-import { calculateScore, calculateScarcityScore } from './water-management.js'
+import {
+  calculateScore,
+  calculateScarcityScore,
+  pointToHexagon
+} from './water-management.js'
 
 describe('water-management helper', () => {
   describe('calculateScore', () => {
@@ -31,15 +35,15 @@ describe('water-management helper', () => {
     it('should calculate the total score correctly with minimal factors', async () => {
       const db = {
         collection: vi.fn().mockReturnThis(),
-        findOne: vi.fn().mockResolvedValue({ score: 1 }) // score 1 maps to 0 in scarcity
+        findOne: vi.fn().mockResolvedValue({ score: 2 }) // score 2 maps to 25 in scarcity
       }
 
       const result = await calculateScore(db, null, 0, 0, null, false, 'N')
 
       expect(result).toEqual({
-        totalScore: 0,
+        totalScore: 25,
         sectorScore: 0,
-        scarcityScore: 0,
+        scarcityScore: 25,
         collaborationScore: 0,
         planningAbstractionScore: 0
       })
@@ -48,7 +52,7 @@ describe('water-management helper', () => {
     it('should calculate the sector score as 25 if growing is truthy', async () => {
       const db = {
         collection: vi.fn().mockReturnThis(),
-        findOne: vi.fn().mockResolvedValue({ score: 1 })
+        findOne: vi.fn().mockResolvedValue({ score: 2 })
       }
       const result = await calculateScore(
         db,
@@ -65,7 +69,7 @@ describe('water-management helper', () => {
     it('should calculate the collaboration score as 10 if supplyOthers is truthy', async () => {
       const db = {
         collection: vi.fn().mockReturnThis(),
-        findOne: vi.fn().mockResolvedValue({ score: 1 })
+        findOne: vi.fn().mockResolvedValue({ score: 2 })
       }
       const result = await calculateScore(db, null, 0, 0, 'yes', false, 'N')
       expect(result.collaborationScore).toBe(10)
@@ -74,7 +78,7 @@ describe('water-management helper', () => {
     it('should calculate planningAbstractionScore as 5 only if planning is true AND abstraction is Y', async () => {
       const db = {
         collection: vi.fn().mockReturnThis(),
-        findOne: vi.fn().mockResolvedValue({ score: 1 })
+        findOne: vi.fn().mockResolvedValue({ score: 2 })
       }
 
       expect(
@@ -86,7 +90,7 @@ describe('water-management helper', () => {
           .planningAbstractionScore
       ).toBe(0)
       expect(
-        (await calculateScore(db, null, 0, 0, false, true, 'N'))
+        (await calculateScore(db, null, 0, 0, false, true, false))
           .planningAbstractionScore
       ).toBe(0)
     })
@@ -107,15 +111,22 @@ describe('water-management helper', () => {
         { hexScore: 5, expected: 40 },
         { hexScore: 4, expected: 35 },
         { hexScore: 3, expected: 30 },
-        { hexScore: 2, expected: 25 },
-        { hexScore: 1, expected: 0 },
-        { hexScore: 0, expected: 0 }
+        { hexScore: 2, expected: 25 }
       ]
 
       for (const { hexScore, expected } of cases) {
         const db = mockDb(hexScore)
         const score = await calculateScarcityScore(db, 0, 0)
         expect(score).toBe(expected)
+      }
+    })
+
+    it('should throw an error for scores not in the mapping (0, 1)', async () => {
+      for (const hexScore of [0, 1]) {
+        const db = mockDb(hexScore)
+        await expect(calculateScarcityScore(db, 0, 0)).rejects.toThrow(
+          'Hexagon score not found'
+        )
       }
     })
 
@@ -127,28 +138,61 @@ describe('water-management helper', () => {
     })
   })
 
-  describe('pointToHexagon (Internal logic)', () => {
-    // Since pointToHexagon is not exported, we test it through calculateScarcityScore
-    it('should correctly map easting/northing to hexagon coordinates', async () => {
-      const db = {
-        collection: vi.fn().mockReturnThis(),
-        findOne: vi.fn().mockImplementation(async ({ q, r }) => {
-          return { q, r, score: 9 }
-        })
-      }
+  describe('pointToHexagon', () => {
+    it('should correctly map (0,0) to hexagon (0,0)', () => {
+      expect(pointToHexagon(0, 0)).toEqual({ q: 0, r: 0 })
+    })
 
-      // Test point (0,0)
-      await calculateScarcityScore(db, 0, 0)
-      expect(db.findOne).toHaveBeenCalledWith({ q: 0, r: 0 })
+    it('should correctly map easting=380712, northing=396269 to correct hexagon', () => {
+      // Manual calculation:
+      // hexagonWidth = 100
+      // hexagonSideLength = 100 / sqrt(3) ~= 57.735
+      // q = (2/3 * 380712) / 57.735 ~= 253808 / 57.735 ~= 4396.08
+      // r = (-1/3 * 380712 + sqrt(3)/3 * 396269) / 57.735
+      //   = (-126904 + 0.57735 * 396269) / 57.735
+      //   = (-126904 + 228786.13) / 57.735
+      //   = 101882.13 / 57.735 ~= 1764.65
+      // q=4396.08, r=1764.65
+      // x=4396.08, z=1764.65, y=-6160.73
+      // roundedX=4396, roundedZ=1765, roundedY=-6161
+      // diffX=0.08, diffZ=0.35, diffY=0.27
+      // diffZ is largest? No, wait.
+      // diffX = |4396 - 4396.08| = 0.08
+      // diffZ = |1765 - 1764.65| = 0.35
+      // diffY = |-6161 - (-6160.73)| = |-0.27| = 0.27
+      // diffZ is indeed largest.
+      // roundedZ = -roundedX - roundedY = -4396 - (-6161) = 1765
+      // result { q: 4396, r: 1765 }
+      expect(pointToHexagon(380712, 396269)).toEqual({ q: 4396, r: 1765 })
+    })
 
-      // Test a known point from existing tests in scoring.test.js: easting=380712, northing=396269
-      // These coordinates map to specific q, r.
-      await calculateScarcityScore(db, 380712, 396269)
-      // We don't need to know the exact q, r here if we trust the previous session's verification,
-      // but we can see what they are to ensure consistency.
-      const call = db.findOne.mock.calls[1][0]
-      expect(call).toHaveProperty('q')
-      expect(call).toHaveProperty('r')
+    it('should handle rounding at boundaries', () => {
+      // Testing a point near a boundary to exercise the rounding logic
+      // hexagonSideLength ~= 57.735
+      // Let's pick a point where one coordinate is halfway between hexagons.
+      // E.g. x = 0.6, z = 0.6, y = -1.2
+      // roundedX = 1, roundedZ = 1, roundedY = -1
+      // diffX = 0.4, diffZ = 0.4, diffY = 0.2
+      // diffX is not greater than diffY AND diffZ... wait.
+      // If diffX > diffY && diffX > diffZ -> roundedX = -roundedY - roundedZ
+      // else if diffY > diffZ -> roundedY = ...
+      // else roundedZ = -roundedX - roundedY
+
+      // Let's just trust the implementation but provide a specific point that was previously debated.
+      // Point where diffX is largest:
+      // x = 0.8, z = 0.1, y = -0.9
+      // roundedX=1, roundedZ=0, roundedY=-1
+      // diffX=0.2, diffZ=0.1, diffY=0.1
+      // diffX > diffY && diffX > diffZ is true.
+      // roundedX = -(-1) - 0 = 1. Correct.
+
+      // q = 0.8 * 57.735 / (2/3) = 0.8 * 57.735 * 1.5 = 69.282
+      // easting = 69.282
+      // r = (-1/3 * 69.282 + sqrt(3)/3 * northing) / 57.735 = 0.1
+      // -23.094 + 0.57735 * northing = 5.7735
+      // 0.57735 * northing = 28.8675
+      // northing = 50
+      expect(pointToHexagon(69.282, 50)).toEqual({ q: 1, r: 0 })
     })
   })
 })

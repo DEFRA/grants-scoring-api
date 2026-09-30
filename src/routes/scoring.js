@@ -1,3 +1,4 @@
+import { StatusCodes } from 'http-status-codes'
 import Joi from 'joi'
 import Boom from '@hapi/boom'
 import { calculateScore as calculateWaterManagementScore } from '#/common/helpers/scoring/water-management.js'
@@ -63,7 +64,7 @@ export const scoring = [
           planning,
           abstraction
         )
-        return h.response({ ...scores }).code(200)
+        return h.response({ ...scores }).code(StatusCodes.OK)
       }
 
       throw Boom.notFound('Unsupported grant')

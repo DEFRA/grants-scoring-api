@@ -1,3 +1,4 @@
+import { StatusCodes } from 'http-status-codes'
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import { scoring } from './scoring.js'
 import Hapi from '@hapi/hapi'
@@ -45,7 +46,7 @@ describe('Scoring Route', () => {
       url: '/scoring/water-management?growing=food&easting=380712&northing=396269&supplyOthers=5%2B&planning=true&abstraction=Y'
     })
 
-    expect(res.statusCode).toBe(200)
+    expect(res.statusCode).toBe(StatusCodes.OK)
     expect(res.result).toEqual({
       totalScore: 100,
       sectorScore: 25,
@@ -70,7 +71,7 @@ describe('Scoring Route', () => {
       url: '/scoring/water-management?abstraction=INVALID'
     })
 
-    expect(res.statusCode).toBe(400)
+    expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
   })
 
   it('should return 400 if county is empty string', async () => {
@@ -79,7 +80,7 @@ describe('Scoring Route', () => {
       url: '/scoring/water-management?county='
     })
 
-    expect(res.statusCode).toBe(400)
+    expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
   })
 
   it('should use default values for water-management grant if query is missing', async () => {
@@ -96,7 +97,7 @@ describe('Scoring Route', () => {
       url: '/scoring/water-management'
     })
 
-    expect(res.statusCode).toBe(200)
+    expect(res.statusCode).toBe(StatusCodes.OK)
     expect(waterManagementHelper.calculateScore).toHaveBeenCalledWith(
       expect.anything(), // db
       'food', // growing
@@ -114,7 +115,7 @@ describe('Scoring Route', () => {
       url: '/scoring/grant-123'
     })
 
-    expect(res.statusCode).toBe(404)
+    expect(res.statusCode).toBe(StatusCodes.NOT_FOUND)
     expect(res.result.message).toBe('Unsupported grant')
   })
 
@@ -124,6 +125,6 @@ describe('Scoring Route', () => {
       url: '/scoring/'
     })
 
-    expect(res.statusCode).toBe(404)
+    expect(res.statusCode).toBe(StatusCodes.NOT_FOUND)
   })
 })
