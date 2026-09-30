@@ -1,11 +1,23 @@
 import hapi from '@hapi/hapi'
 
+vi.mock('node:fs/promises', () => ({
+  default: {
+    readFile: vi.fn().mockResolvedValue('[]')
+  }
+}))
+
 vi.mock('mongodb', () => {
-  const mockClient = {
-    db: vi.fn().mockReturnThis(),
-    collection: vi.fn().mockReturnThis(),
+  const mockCollection = {
+    countDocuments: vi.fn().mockResolvedValue(0),
+    insertMany: vi.fn().mockResolvedValue({ insertedCount: 0 }),
     createIndex: vi.fn().mockResolvedValue({}),
-    createIndexes: vi.fn().mockResolvedValue({}),
+    createIndexes: vi.fn().mockResolvedValue({})
+  }
+  const mockDb = {
+    collection: vi.fn().mockReturnValue(mockCollection)
+  }
+  const mockClient = {
+    db: vi.fn().mockReturnValue(mockDb),
     close: vi.fn().mockResolvedValue({})
   }
   return {
