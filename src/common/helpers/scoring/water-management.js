@@ -105,16 +105,6 @@ export const calculateCollaborationScore = (businessesUsingWater) => {
   return score
 }
 
-const planningAbstractionScores = {
-  PLANNING_Y_ABSTRACTION_Y: 5,
-  PLANNING_N_ABSTRACTION_N: 0,
-  PLANNING_N_ABSTRACTION_Y: 0,
-  PLANNING_Y_ABSTRACTION_N: 0,
-  PLANNING_NN_ABSTRACTION_Y: 5,
-  PLANNING_Y_ABSTRACTION_NN: 5,
-  PLANNING_NN_ABSTRACTION_NN: 5
-}
-
 /**
  * Planning/Abstraction is scored out of 5.
  * <br/>
@@ -132,14 +122,12 @@ const planningAbstractionScores = {
  * @returns {number} - the score awarded based on whether planning and abstraction are needed/held
  */
 export const calculatePlanningAbstractionScore = (planning, abstraction) => {
-  const key = `PLANNING_${planning}_ABSTRACTION_${abstraction}`
-  const score = planningAbstractionScores[key]
-
-  if (score === undefined) {
+  const validValues = ['Y', 'N', 'NN']
+  if (!validValues.includes(planning) || !validValues.includes(abstraction)) {
     throw new Error('Invalid planning or abstraction value')
   }
 
-  return score
+  return planning !== 'N' && abstraction !== 'N' ? 5 : 0
 }
 
 /**
