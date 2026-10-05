@@ -167,10 +167,9 @@ describe('water-management helper', () => {
     })
 
     it('should correctly map easting=380712, northing=396269 to correct hexagon', () => {
-      // Manual calculation:
-      // hexagonWidth = 100
-      // hexagonSideLength = 100 / sqrt(3) ~= 57.735
-      // q = (2/3 * 380712) / 57.735 ~= 253808 / 57.735 ~= 4396.08
+      // Manual calculation with updated hexagon size (Area = 8660.260000033304):
+      // s = sqrt(2 * A / (3 * sqrt(3))) = sqrt(17320.52 / 5.1961524) = sqrt(3333.333) ~= 57.735
+      // q = (2/3 * 380712) / 57.735 = 253808 / 57.735 ~= 4396.08
       // r = (-1/3 * 380712 + sqrt(3)/3 * 396269) / 57.735
       //   = (-126904 + 0.57735 * 396269) / 57.735
       //   = (-126904 + 228786.13) / 57.735
@@ -179,12 +178,7 @@ describe('water-management helper', () => {
       // x=4396.08, z=1764.65, y=-6160.73
       // roundedX=4396, roundedZ=1765, roundedY=-6161
       // diffX=0.08, diffZ=0.35, diffY=0.27
-      // diffZ is largest? No, wait.
-      // diffX = |4396 - 4396.08| = 0.08
-      // diffZ = |1765 - 1764.65| = 0.35
-      // diffY = |-6161 - (-6160.73)| = |-0.27| = 0.27
-      // diffZ is indeed largest.
-      // roundedZ = -roundedX - roundedY = -4396 - (-6161) = 1765
+      // diffZ is largest, so roundedZ = -roundedX - roundedY = -4396 - (-6161) = 1765
       // result { q: 4396, r: 1765 }
       expect(pointToHexagon(logger, 380712, 396269)).toEqual({
         q: 4396,
