@@ -61,10 +61,7 @@ export const sectorsIrrigatedScores = {
  * @returns {number} - the highest score awarded out of the sectors provided
  */
 export const calculateSectorScore = (sectorsIrrigated) => {
-  if (
-    !sectorsIrrigated ||
-    (Array.isArray(sectorsIrrigated) && sectorsIrrigated.length === 0)
-  ) {
+  if (!sectorsIrrigated?.length) {
     throw new Error('No sectors provided')
   }
 
@@ -122,12 +119,14 @@ export const calculateCollaborationScore = (businessesUsingWater) => {
  * @returns {number} - the score awarded based on whether planning and abstraction are needed/held
  */
 export const calculatePlanningAbstractionScore = (planning, abstraction) => {
-  const validValues = ['Y', 'N', 'NN']
-  if (!validValues.includes(planning) || !validValues.includes(abstraction)) {
+  const validValues = new Set(['Y', 'N', 'NN'])
+  const maxScore = 5
+
+  if (!validValues.has(planning) || !validValues.has(abstraction)) {
     throw new Error('Invalid planning or abstraction value')
   }
 
-  return planning !== 'N' && abstraction !== 'N' ? 5 : 0
+  return planning !== 'N' && abstraction !== 'N' ? maxScore : 0
 }
 
 /**
