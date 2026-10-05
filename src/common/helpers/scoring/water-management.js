@@ -88,8 +88,6 @@ export const calculateCollaborationScore = (businessesUsingWater) => {
   return collaborationScores[businessesUsingWater]
 }
 
-export const planningAbstractionValues = ['Y', 'N', 'NN']
-
 /**
  * Planning/Abstraction is scored out of 5.
  * <br/>
@@ -113,6 +111,7 @@ export const calculatePlanningAbstractionScore = (planning, abstraction) => {
 
 /**
  * Scarcity is scored out of a maximum percentage
+ * @param logger
  * @param db
  * @param easting
  * @param northing
@@ -132,10 +131,10 @@ export const calculateScarcityScore = async (logger, db, easting, northing) => {
 
   const { q, r } = pointToHexagon(logger, easting, northing)
 
-  const score = await getHexagonScoreFromDatastore(logger, db, q, r)
+  const score = await getHexagonScoreFromDatastore(db, q, r)
   if (!score) {
     logger.info(
-      `Score not found for location q: ${q}, r: ${r}, derived from easting: ${easting}, northing: ${northing}`
+      `Score not found for location q: ${q} and r: ${r}, derived from easting: ${easting} and northing: ${northing}`
     )
   }
 
@@ -216,7 +215,7 @@ export const pointToHexagon = (logger, easting, northing) => {
   }
 }
 
-const getHexagonScoreFromDatastore = async (logger, db, q, r) => {
+const getHexagonScoreFromDatastore = async (db, q, r) => {
   const hex = await db.collection('hexagons').findOne({ q, r })
   return hex?.score ?? 0
 }

@@ -50,7 +50,7 @@ describe('Scoring Route', () => {
 
     const res = await server.inject({
       method: 'GET',
-      url: '/scoring/water-management?sectorsIrrigated=SOFT_AND_CANE_FRUIT&sectorsIrrigated=ARABLE&easting=380712&northing=396269&businessesUsingWater=FIVE_OR_MORE&planning=Y&abstraction=Y'
+      url: '/scoring/water-management?easting=380712&northing=396269&sectorsIrrigated=SOFT_AND_CANE_FRUIT&sectorsIrrigated=ARABLE&businessesUsingWater=FIVE_OR_MORE&planning=Y&abstraction=Y'
     })
 
     expect(res.statusCode).toBe(StatusCodes.OK)
@@ -76,7 +76,7 @@ describe('Scoring Route', () => {
   it('should return 400 if abstraction is invalid', async () => {
     const res = await server.inject({
       method: 'GET',
-      url: '/scoring/water-management?abstraction=INVALID'
+      url: '/scoring/water-management?easting=380712&northing=396269&abstraction=INVALID'
     })
 
     expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
@@ -85,7 +85,7 @@ describe('Scoring Route', () => {
   it('should return 400 if sectorsIrrigated contains invalid values', async () => {
     const res = await server.inject({
       method: 'GET',
-      url: '/scoring/water-management?sectorsIrrigated=SOFT_AND_CANE_FRUIT&sectorsIrrigated=INVALID_SECTOR'
+      url: '/scoring/water-management?easting=380712&northing=396269&sectorsIrrigated=SOFT_AND_CANE_FRUIT&sectorsIrrigated=INVALID_SECTOR'
     })
 
     expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
@@ -102,7 +102,7 @@ describe('Scoring Route', () => {
 
     const res = await server.inject({
       method: 'GET',
-      url: '/scoring/water-management?sectorsIrrigated=SOFT_AND_CANE_FRUIT'
+      url: '/scoring/water-management?easting=380712&northing=396269&sectorsIrrigated=SOFT_AND_CANE_FRUIT'
     })
 
     expect(res.statusCode).toBe(StatusCodes.OK)
@@ -118,15 +118,6 @@ describe('Scoring Route', () => {
     )
   })
 
-  it('should return 400 if county is empty string', async () => {
-    const res = await server.inject({
-      method: 'GET',
-      url: '/scoring/water-management?county='
-    })
-
-    expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
-  })
-
   it('should use default values for water-management grant if query is missing', async () => {
     waterManagementHelper.calculateScore.mockResolvedValue({
       totalScore: 100,
@@ -138,7 +129,7 @@ describe('Scoring Route', () => {
 
     const res = await server.inject({
       method: 'GET',
-      url: '/scoring/water-management'
+      url: '/scoring/water-management?easting=380712&northing=396269'
     })
 
     expect(res.statusCode).toBe(StatusCodes.OK)
@@ -157,7 +148,7 @@ describe('Scoring Route', () => {
   it('should return 404 if grant is not water-management', async () => {
     const res = await server.inject({
       method: 'GET',
-      url: '/scoring/grant-123'
+      url: '/scoring/grant-123?easting=380712&northing=396269'
     })
 
     expect(res.statusCode).toBe(StatusCodes.NOT_FOUND)

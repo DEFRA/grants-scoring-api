@@ -4,11 +4,12 @@ import Boom from '@hapi/boom'
 import {
   calculateScore as calculateWaterManagementScore,
   sectorsIrrigatedScores,
-  collaborationScores,
-  planningAbstractionValues
+  collaborationScores
 } from '#/common/helpers/scoring/water-management.js'
 
 export const GRANTS_UI_SUBJECT = 'grants-ui'
+
+const planningAbstractionValues = ['Y', 'N', 'NN']
 
 export const scoring = [
   {
@@ -35,12 +36,10 @@ export const scoring = [
               'The sectors being irrigated using the water from the project'
             ),
           easting: Joi.number()
-            .optional()
-            .default(380712)
+            .required()
             .description('The easting coordinate of the location'),
           northing: Joi.number()
-            .optional()
-            .default(396269)
+            .required()
             .description('The northing coordinate of the location'),
           businessesUsingWater: Joi.string()
             .valid(...Object.keys(collaborationScores))
