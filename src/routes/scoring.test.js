@@ -50,7 +50,7 @@ describe('Scoring Route', () => {
 
     const res = await server.inject({
       method: 'GET',
-      url: '/scoring/water-management?cropsIrrigated=SOFT_AND_CANE_FRUIT&cropsIrrigated=ARABLE&easting=380712&northing=396269&supplyOthers=5%2B&planning=true&abstraction=Y'
+      url: '/scoring/water-management?sectorsIrrigated=SOFT_AND_CANE_FRUIT&sectorsIrrigated=ARABLE&easting=380712&northing=396269&supplyOthers=5%2B&planning=true&abstraction=Y'
     })
 
     expect(res.statusCode).toBe(StatusCodes.OK)
@@ -64,7 +64,7 @@ describe('Scoring Route', () => {
     expect(waterManagementHelper.calculateScore).toHaveBeenCalledWith(
       undefined, // logger
       {}, // db
-      ['SOFT_AND_CANE_FRUIT', 'ARABLE'], // cropsIrrigated
+      ['SOFT_AND_CANE_FRUIT', 'ARABLE'], // sectorsIrrigated
       380712, // easting (parsed as number by Joi)
       396269, // northing (parsed as number by Joi)
       '5+', // supplyOthers
@@ -82,13 +82,40 @@ describe('Scoring Route', () => {
     expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
   })
 
-  it('should return 400 if cropsIrrigated contains invalid values', async () => {
+  it('should return 400 if sectorsIrrigated contains invalid values', async () => {
     const res = await server.inject({
       method: 'GET',
-      url: '/scoring/water-management?cropsIrrigated=SOFT_AND_CANE_FRUIT&cropsIrrigated=INVALID_CROP'
+      url: '/scoring/water-management?sectorsIrrigated=SOFT_AND_CANE_FRUIT&sectorsIrrigated=INVALID_SECTOR'
     })
 
     expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
+  })
+
+  it('should return 200 if only one sectorsIrrigated query param is present', async () => {
+    waterManagementHelper.calculateScore.mockResolvedValue({
+      totalScore: 100,
+      sectorScore: 25,
+      scarcityScore: 60,
+      collaborationScore: 10,
+      planningAbstractionScore: 5
+    })
+
+    const res = await server.inject({
+      method: 'GET',
+      url: '/scoring/water-management?sectorsIrrigated=SOFT_AND_CANE_FRUIT'
+    })
+
+    expect(res.statusCode).toBe(StatusCodes.OK)
+    expect(waterManagementHelper.calculateScore).toHaveBeenCalledWith(
+      undefined,
+      {},
+      ['SOFT_AND_CANE_FRUIT'],
+      380712,
+      396269,
+      '5+',
+      true,
+      'NN'
+    )
   })
 
   it('should return 400 if county is empty string', async () => {
@@ -118,7 +145,7 @@ describe('Scoring Route', () => {
     expect(waterManagementHelper.calculateScore).toHaveBeenCalledWith(
       undefined, // logger
       {}, // db
-      ['SOFT_AND_CANE_FRUIT'], // cropsIrrigated
+      ['SOFT_AND_CANE_FRUIT'], // sectorsIrrigated
       380712, // easting (default is number)
       396269, // northing (default is number)
       '5+', // supplyOthers

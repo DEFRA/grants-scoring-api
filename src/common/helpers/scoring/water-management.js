@@ -1,14 +1,14 @@
 export const calculateScore = async (
   logger,
   db,
-  cropsIrrigated,
+  sectorsIrrigated,
   easting,
   northing,
   supplyOthers,
   planning,
   abstraction
 ) => {
-  const sectorScore = calculateSectorScore(cropsIrrigated)
+  const sectorScore = calculateSectorScore(sectorsIrrigated)
   const collaborationScore = calculateCollaborationScore(supplyOthers)
   const planningAbstractionScore = calculatePlanningAbstractionScore(
     planning,
@@ -33,7 +33,7 @@ export const calculateScore = async (
   }
 }
 
-export const cropsIrrigatedScores = {
+export const sectorsIrrigatedScores = {
   SOFT_AND_CANE_FRUIT: 25,
   PROTECTED_EDIBLE_CROPS: 25,
   ORNAMENTALS: 20,
@@ -48,32 +48,32 @@ export const cropsIrrigatedScores = {
 /**
  * Sector is scored out of 25.
  * <br/>
- * If multiple crops are being irrigated using the water from this project, the highest score is used.
+ * If multiple sectors are being irrigated using the water from this project, the highest score is used.
  *
- * Scores awarded for crops irrigated using the water from this project:
+ * Scores awarded for sectors irrigated using the water from this project:
  * <li>25% - Soft & Cane Fruit (SOFT_AND_CANE_FRUIT), Protected edible crops (PROTECTED_EDIBLE_CROPS)</li>
  * <li>20% - Ornamentals (ORNAMENTALS), Forest Nursery (FOREST_NURSERY)</li>
  * <li>15% - Top & Stone Fruit (TOP_AND_STONE_FRUIT), Vineyards (VINEYARDS), Field scale vegetables (FIELD_SCALE_VEGETABLES)</li>
  * <li>5% - Arable (ARABLE)</li>
  * <li>2% - Grass - for feeding livestock, commercial turf (GRASS_FEEDING_LIVESTOCK_COMMERCIAL_TURF)</li>
  *
- * @param {string[]} cropsIrrigated - crops irrigated using the water from the project
- * @returns {number} - the highest score awarded out of the crops provided
+ * @param {string[]} sectorsIrrigated - sectors irrigated using the water from the project
+ * @returns {number} - the highest score awarded out of the sectors provided
  */
-export const calculateSectorScore = (cropsIrrigated) => {
+export const calculateSectorScore = (sectorsIrrigated) => {
   if (
-    !cropsIrrigated ||
-    (Array.isArray(cropsIrrigated) && cropsIrrigated.length === 0)
+    !sectorsIrrigated ||
+    (Array.isArray(sectorsIrrigated) && sectorsIrrigated.length === 0)
   ) {
-    throw new Error('No crops provided')
+    throw new Error('No sectors provided')
   }
 
-  const scores = cropsIrrigated
-    .map((crop) => cropsIrrigatedScores[crop])
+  const scores = sectorsIrrigated
+    .map((sector) => sectorsIrrigatedScores[sector])
     .filter((score) => score !== undefined)
 
   if (scores.length === 0) {
-    throw new Error('No valid crops provided')
+    throw new Error('No valid sectors provided')
   }
   return Math.max(...scores)
 }

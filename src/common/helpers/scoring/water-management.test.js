@@ -35,7 +35,7 @@ describe('water-management helper', () => {
       })
     })
 
-    it('should throw an error if cropsIrrigated is missing', async () => {
+    it('should throw an error if sectorsIrrigated is missing', async () => {
       const db = {
         collection: vi.fn().mockReturnThis(),
         findOne: vi.fn().mockResolvedValue({ score: 2 }) // score 2 maps to 25 in scarcity
@@ -43,7 +43,7 @@ describe('water-management helper', () => {
 
       await expect(
         calculateScore(logger, db, null, 0, 0, null, false, 'N')
-      ).rejects.toThrow('No crops provided')
+      ).rejects.toThrow('No sectors provided')
     })
   })
 
@@ -86,7 +86,7 @@ describe('water-management helper', () => {
       ).toBe(2)
     })
 
-    it('should return the highest score when multiple crops are provided', () => {
+    it('should return the highest score when multiple sectors are provided', () => {
       expect(
         calculateSectorScore(['ARABLE', 'SOFT_AND_CANE_FRUIT', 'VINEYARDS'])
       ).toBe(25)
@@ -98,15 +98,17 @@ describe('water-management helper', () => {
       ).toBe(5)
     })
 
-    it('should throw an error if no crops are provided', () => {
-      expect(() => calculateSectorScore([])).toThrow('No crops provided')
-      expect(() => calculateSectorScore(null)).toThrow('No crops provided')
-      expect(() => calculateSectorScore(undefined)).toThrow('No crops provided')
+    it('should throw an error if no sectors are provided', () => {
+      expect(() => calculateSectorScore([])).toThrow('No sectors provided')
+      expect(() => calculateSectorScore(null)).toThrow('No sectors provided')
+      expect(() => calculateSectorScore(undefined)).toThrow(
+        'No sectors provided'
+      )
     })
 
-    it('should throw an error if none of the provided crops match', () => {
-      expect(() => calculateSectorScore(['UNKNOWN_CROP'])).toThrow(
-        'No valid crops provided'
+    it('should throw an error if none of the provided sectors match', () => {
+      expect(() => calculateSectorScore(['UNKNOWN_SECTOR'])).toThrow(
+        'No valid sectors provided'
       )
     })
   })
