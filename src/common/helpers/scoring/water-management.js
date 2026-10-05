@@ -33,6 +33,18 @@ export const calculateScore = async (
   }
 }
 
+export const cropsIrrigatedScores = {
+  SOFT_AND_CANE_FRUIT: 25,
+  PROTECTED_EDIBLE_CROPS: 25,
+  ORNAMENTALS: 20,
+  FOREST_NURSERY: 20,
+  TOP_AND_STONE_FRUIT: 15,
+  VINEYARDS: 15,
+  FIELD_SCALE_VEGETABLES: 15,
+  ARABLE: 5,
+  GRASS_FEEDING_LIVESTOCK_COMMERCIAL_TURF: 2
+}
+
 /**
  * Sector is scored out of 25.
  * <br/>
@@ -56,30 +68,14 @@ export const calculateSectorScore = (cropsIrrigated) => {
     throw new Error('No crops provided')
   }
 
-  const sectorScores = {
-    SOFT_AND_CANE_FRUIT: 25,
-    PROTECTED_EDIBLE_CROPS: 25,
-    ORNAMENTALS: 20,
-    FOREST_NURSERY: 20,
-    TOP_AND_STONE_FRUIT: 15,
-    VINEYARDS: 15,
-    FIELD_SCALE_VEGETABLES: 15,
-    ARABLE: 5,
-    GRASS_FEEDING_LIVESTOCK_COMMERCIAL_TURF: 2
+  const scores = cropsIrrigated
+    .map((crop) => cropsIrrigatedScores[crop])
+    .filter((score) => score !== undefined)
+
+  if (scores.length === 0) {
+    throw new Error('No valid crops provided')
   }
-
-  if (Array.isArray(cropsIrrigated)) {
-    const scores = cropsIrrigated
-      .map((crop) => sectorScores[crop])
-      .filter((score) => score !== undefined)
-
-    if (scores.length === 0) {
-      throw new Error('No valid crops provided')
-    }
-    return Math.max(...scores)
-  }
-
-  throw new Error('No valid crops provided')
+  return Math.max(...scores)
 }
 
 /**

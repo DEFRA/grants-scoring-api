@@ -5,9 +5,16 @@ import Hapi from '@hapi/hapi'
 import { failAction } from '#/common/helpers/fail-action.js'
 import * as waterManagementHelper from '#/common/helpers/scoring/water-management.js'
 
-vi.mock('#/common/helpers/scoring/water-management.js', () => ({
-  calculateScore: vi.fn()
-}))
+vi.mock(
+  '#/common/helpers/scoring/water-management.js',
+  async (importOriginal) => {
+    const actual = await importOriginal()
+    return {
+      ...actual,
+      calculateScore: vi.fn()
+    }
+  }
+)
 
 describe('Scoring Route', () => {
   let server
@@ -70,6 +77,15 @@ describe('Scoring Route', () => {
     const res = await server.inject({
       method: 'GET',
       url: '/scoring/water-management?abstraction=INVALID'
+    })
+
+    expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
+  })
+
+  it('should return 400 if cropsIrrigated contains invalid values', async () => {
+    const res = await server.inject({
+      method: 'GET',
+      url: '/scoring/water-management?cropsIrrigated=SOFT_AND_CANE_FRUIT&cropsIrrigated=INVALID_CROP'
     })
 
     expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)

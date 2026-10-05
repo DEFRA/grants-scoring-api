@@ -1,7 +1,10 @@
 import { StatusCodes } from 'http-status-codes'
 import Joi from 'joi'
 import Boom from '@hapi/boom'
-import { calculateScore as calculateWaterManagementScore } from '#/common/helpers/scoring/water-management.js'
+import {
+  calculateScore as calculateWaterManagementScore,
+  cropsIrrigatedScores
+} from '#/common/helpers/scoring/water-management.js'
 
 export const GRANTS_UI_SUBJECT = 'grants-ui'
 
@@ -21,7 +24,7 @@ export const scoring = [
         }),
         query: Joi.object({
           cropsIrrigated: Joi.array()
-            .items(Joi.string())
+            .items(Joi.string().valid(...Object.keys(cropsIrrigatedScores)))
             .optional()
             .description(
               'The crops being irrigated using the water from the project'
