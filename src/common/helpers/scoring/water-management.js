@@ -79,12 +79,6 @@ export const calculateSectorScore = (cropsIrrigated) => {
     return Math.max(...scores)
   }
 
-  if (typeof cropsIrrigated === 'string') {
-    if (sectorScores[cropsIrrigated] !== undefined) {
-      return sectorScores[cropsIrrigated]
-    }
-  }
-
   throw new Error('No valid crops provided')
 }
 
