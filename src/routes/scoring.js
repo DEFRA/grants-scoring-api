@@ -4,7 +4,8 @@ import Boom from '@hapi/boom'
 import {
   calculateScore as calculateWaterManagementScore,
   sectorsIrrigatedScores,
-  collaborationScores
+  collaborationScores,
+  planningAbstractionValues
 } from '#/common/helpers/scoring/water-management.js'
 
 export const GRANTS_UI_SUBJECT = 'grants-ui'
@@ -23,47 +24,53 @@ export const scoring = [
         params: Joi.object({
           grant: Joi.string().required().description('The grant identifier')
         }),
+        // TODO remove optional and default
         query: Joi.object({
           sectorsIrrigated: Joi.array()
             .items(Joi.string().valid(...Object.keys(sectorsIrrigatedScores)))
             .single()
             .optional()
+            .default(['SOFT_AND_CANE_FRUIT'])
             .description(
               'The sectors being irrigated using the water from the project'
             ),
           easting: Joi.number()
             .optional()
+            .default(380712)
             .description('The easting coordinate of the location'),
           northing: Joi.number()
             .optional()
+            .default(396269)
             .description('The northing coordinate of the location'),
           businessesUsingWater: Joi.string()
             .valid(...Object.keys(collaborationScores))
             .optional()
+            .default('FIVE_OR_MORE')
             .description(
               'The number of businesses using the water from the project'
             ),
           planning: Joi.string()
-            .valid('Y', 'N', 'NN')
+            .valid(...planningAbstractionValues)
             .optional()
+            .default('Y')
             .description('Whether planning permission is needed/held'),
           abstraction: Joi.string()
-            .valid('Y', 'N', 'NN')
+            .valid(...planningAbstractionValues)
             .optional()
+            .default('NN')
             .description('Whether an abstraction licence is needed/held')
         })
       }
     },
     handler: async (request, h) => {
       const { grant } = request.params
-      // TODO BH remove defaults
       const {
-        sectorsIrrigated = ['SOFT_AND_CANE_FRUIT'],
-        easting = 380712,
-        northing = 396269,
-        businessesUsingWater = 'FIVE_OR_MORE',
-        planning = 'Y',
-        abstraction = 'NN'
+        sectorsIrrigated,
+        easting,
+        northing,
+        businessesUsingWater,
+        planning,
+        abstraction
       } = request.query
 
       if (grant === 'water-management') {

@@ -61,18 +61,10 @@ export const sectorsIrrigatedScores = {
  * @returns {number} - the highest score awarded out of the sectors provided
  */
 export const calculateSectorScore = (sectorsIrrigated) => {
-  if (!sectorsIrrigated?.length) {
-    throw new Error('No sectors provided')
-  }
-
-  const scores = sectorsIrrigated
+  return sectorsIrrigated
     .map((sector) => sectorsIrrigatedScores[sector])
     .filter((score) => score !== undefined)
-
-  if (scores.length === 0) {
-    throw new Error('No valid sectors provided')
-  }
-  return Math.max(...scores)
+    .reduce((maxScore, score) => Math.max(maxScore, score), 0)
 }
 
 export const collaborationScores = {
@@ -93,14 +85,10 @@ export const collaborationScores = {
  * @returns {number} - the score awarded based on the number of businesses
  */
 export const calculateCollaborationScore = (businessesUsingWater) => {
-  const score = collaborationScores[businessesUsingWater]
-
-  if (score === undefined) {
-    throw new Error('Invalid businessesUsingWater value')
-  }
-
-  return score
+  return collaborationScores[businessesUsingWater]
 }
+
+export const planningAbstractionValues = ['Y', 'N', 'NN']
 
 /**
  * Planning/Abstraction is scored out of 5.
@@ -119,13 +107,7 @@ export const calculateCollaborationScore = (businessesUsingWater) => {
  * @returns {number} - the score awarded based on whether planning and abstraction are needed/held
  */
 export const calculatePlanningAbstractionScore = (planning, abstraction) => {
-  const validValues = new Set(['Y', 'N', 'NN'])
   const maxScore = 5
-
-  if (!validValues.has(planning) || !validValues.has(abstraction)) {
-    throw new Error('Invalid planning or abstraction value')
-  }
-
   return planning !== 'N' && abstraction !== 'N' ? maxScore : 0
 }
 
@@ -150,13 +132,14 @@ export const calculateScarcityScore = async (logger, db, easting, northing) => {
 
   const { q, r } = pointToHexagon(logger, easting, northing)
 
-  const score = await getHexagonScoreFromDatastore(db, q, r)
-
-  const percentage = scoreToPercentageMappings[score]
-  if (percentage === undefined) {
-    throw new Error('Hexagon score not found')
+  const score = await getHexagonScoreFromDatastore(logger, db, q, r)
+  if (!score) {
+    logger.info(
+      `Score not found for location q: ${q}, r: ${r}, derived from easting: ${easting}, northing: ${northing}`
+    )
   }
-  return percentage
+
+  return scoreToPercentageMappings[score] ?? 0
 }
 
 /**
@@ -233,10 +216,7 @@ export const pointToHexagon = (logger, easting, northing) => {
   }
 }
 
-const getHexagonScoreFromDatastore = async (db, q, r) => {
+const getHexagonScoreFromDatastore = async (logger, db, q, r) => {
   const hex = await db.collection('hexagons').findOne({ q, r })
-  if (!hex) {
-    throw new Error(`Hexagon not found for q: ${q}, r: ${r}`)
-  }
-  return hex.score
+  return hex?.score ?? 0
 }

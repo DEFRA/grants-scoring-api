@@ -11,6 +11,7 @@ import {
 describe('water-management helper', () => {
   describe('calculateScore', () => {
     const logger = { info: vi.fn() }
+
     it('should calculate the total score correctly with all positive factors', async () => {
       const db = {
         collection: vi.fn().mockReturnThis(),
@@ -35,17 +36,6 @@ describe('water-management helper', () => {
         collaborationScore: 10,
         planningAbstractionScore: 5
       })
-    })
-
-    it('should throw an error if sectorsIrrigated is missing', async () => {
-      const db = {
-        collection: vi.fn().mockReturnThis(),
-        findOne: vi.fn().mockResolvedValue({ score: 2 }) // score 2 maps to 25 in scarcity
-      }
-
-      await expect(
-        calculateScore(logger, db, null, 0, 0, 'ONE', 'N', 'N')
-      ).rejects.toThrow('No sectors provided')
     })
   })
 
@@ -99,20 +89,6 @@ describe('water-management helper', () => {
         ])
       ).toBe(5)
     })
-
-    it('should throw an error if no sectors are provided', () => {
-      expect(() => calculateSectorScore([])).toThrow('No sectors provided')
-      expect(() => calculateSectorScore(null)).toThrow('No sectors provided')
-      expect(() => calculateSectorScore(undefined)).toThrow(
-        'No sectors provided'
-      )
-    })
-
-    it('should throw an error if none of the provided sectors match', () => {
-      expect(() => calculateSectorScore(['UNKNOWN_SECTOR'])).toThrow(
-        'No valid sectors provided'
-      )
-    })
   })
 
   describe('calculateCollaborationScore', () => {
@@ -126,18 +102,6 @@ describe('water-management helper', () => {
 
     it('should return 0 for ONE', () => {
       expect(calculateCollaborationScore('ONE')).toBe(0)
-    })
-
-    it('should throw an error for invalid values', () => {
-      expect(() => calculateCollaborationScore('INVALID')).toThrow(
-        'Invalid businessesUsingWater value'
-      )
-      expect(() => calculateCollaborationScore(null)).toThrow(
-        'Invalid businessesUsingWater value'
-      )
-      expect(() => calculateCollaborationScore(undefined)).toThrow(
-        'Invalid businessesUsingWater value'
-      )
     })
   })
 
@@ -169,22 +133,11 @@ describe('water-management helper', () => {
     it('should return 5 when neither are needed (NN, NN)', () => {
       expect(calculatePlanningAbstractionScore('NN', 'NN')).toBe(5)
     })
-
-    it('should throw an error for invalid planning values', () => {
-      expect(() => calculatePlanningAbstractionScore('INVALID', 'Y')).toThrow(
-        'Invalid planning or abstraction value'
-      )
-    })
-
-    it('should throw an error for invalid abstraction values', () => {
-      expect(() => calculatePlanningAbstractionScore('Y', 'INVALID')).toThrow(
-        'Invalid planning or abstraction value'
-      )
-    })
   })
 
   describe('calculateScarcityScore', () => {
     const logger = { info: vi.fn() }
+
     const mockDb = (score) => ({
       collection: vi.fn().mockReturnThis(),
       findOne: vi.fn().mockResolvedValue(score !== undefined ? { score } : null)
@@ -209,20 +162,11 @@ describe('water-management helper', () => {
       }
     })
 
-    it('should throw an error for scores not in the mapping (0, 1)', async () => {
-      for (const hexScore of [0, 1]) {
-        const db = mockDb(hexScore)
-        await expect(calculateScarcityScore(logger, db, 0, 0)).rejects.toThrow(
-          'Hexagon score not found'
-        )
-      }
-    })
-
-    it('should throw an error if hexagon is not found', async () => {
+    it('should return zero if hexagon is not found', async () => {
       const db = mockDb(undefined)
-      await expect(calculateScarcityScore(logger, db, 0, 0)).rejects.toThrow(
-        'Hexagon not found for q: 0, r: 0'
-      )
+
+      const score = await calculateScarcityScore(logger, db, 0, 0)
+      expect(score).toBe(0)
     })
   })
 
