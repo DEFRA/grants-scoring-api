@@ -105,23 +105,41 @@ export const calculateCollaborationScore = (businessesUsingWater) => {
   return score
 }
 
+const planningAbstractionScores = {
+  PLANNING_Y_ABSTRACTION_Y: 5,
+  PLANNING_N_ABSTRACTION_N: 0,
+  PLANNING_N_ABSTRACTION_Y: 0,
+  PLANNING_Y_ABSTRACTION_N: 0,
+  PLANNING_NN_ABSTRACTION_Y: 5,
+  PLANNING_Y_ABSTRACTION_NN: 5,
+  PLANNING_NN_ABSTRACTION_NN: 5
+}
+
 /**
- * Planning/EA is scored out of 5
- * @param planning
- * @param abstraction
- * @returns {number}
+ * Planning/Abstraction is scored out of 5.
+ * <br/>
+ * Scores awarded based on if planning permission and abstraction licence are needed/held:
+ * <li>5% - Planning and abstraction are held</li>
+ * <li>0% - Neither planning nor abstraction are held</li>
+ * <li>0% - Abstraction is held, but planning is NOT held</li>
+ * <li>0% - Planning is held, but abstraction is NOT held</li>
+ * <li>5% - Abstraction is held, and planning is not needed</li>
+ * <li>5% - Planning is held, and abstraction is not needed</li>
+ * <li>5% - Neither planning nor abstraction is needed</li>
+ *
+ * @param {string} planning - whether planning permission is needed/held
+ * @param {string} abstraction - whether an abstraction licence is needed/held
+ * @returns {number} - the score awarded based on whether planning and abstraction are needed/held
  */
-const calculatePlanningAbstractionScore = (planning, abstraction) => {
-  const scores = {
-    max: 5,
-    min: 0
+export const calculatePlanningAbstractionScore = (planning, abstraction) => {
+  const key = `PLANNING_${planning}_ABSTRACTION_${abstraction}`
+  const score = planningAbstractionScores[key]
+
+  if (score === undefined) {
+    throw new Error('Invalid planning or abstraction value')
   }
 
-  if (planning && abstraction) {
-    return scores.max
-  } else {
-    return scores.min
-  }
+  return score
 }
 
 /**

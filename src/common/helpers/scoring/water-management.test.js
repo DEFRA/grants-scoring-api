@@ -4,7 +4,8 @@ import {
   calculateScarcityScore,
   pointToHexagon,
   calculateSectorScore,
-  calculateCollaborationScore
+  calculateCollaborationScore,
+  calculatePlanningAbstractionScore
 } from './water-management.js'
 
 describe('water-management helper', () => {
@@ -23,7 +24,7 @@ describe('water-management helper', () => {
         380712,
         396269,
         'FIVE_OR_MORE',
-        true,
+        'Y',
         'Y'
       )
 
@@ -43,7 +44,7 @@ describe('water-management helper', () => {
       }
 
       await expect(
-        calculateScore(logger, db, null, 0, 0, 'ONE', false, 'N')
+        calculateScore(logger, db, null, 0, 0, 'ONE', 'N', 'N')
       ).rejects.toThrow('No sectors provided')
     })
   })
@@ -136,6 +137,48 @@ describe('water-management helper', () => {
       )
       expect(() => calculateCollaborationScore(undefined)).toThrow(
         'Invalid businessesUsingWater value'
+      )
+    })
+  })
+
+  describe('calculatePlanningAbstractionScore', () => {
+    it('should return 5 when planning and abstraction are held (Y, Y)', () => {
+      expect(calculatePlanningAbstractionScore('Y', 'Y')).toBe(5)
+    })
+
+    it('should return 0 when neither are held (N, N)', () => {
+      expect(calculatePlanningAbstractionScore('N', 'N')).toBe(0)
+    })
+
+    it('should return 0 when only abstraction is held (N, Y)', () => {
+      expect(calculatePlanningAbstractionScore('N', 'Y')).toBe(0)
+    })
+
+    it('should return 0 when only planning is held (Y, N)', () => {
+      expect(calculatePlanningAbstractionScore('Y', 'N')).toBe(0)
+    })
+
+    it('should return 5 when planning not needed and abstraction held (NN, Y)', () => {
+      expect(calculatePlanningAbstractionScore('NN', 'Y')).toBe(5)
+    })
+
+    it('should return 5 when planning held and abstraction not needed (Y, NN)', () => {
+      expect(calculatePlanningAbstractionScore('Y', 'NN')).toBe(5)
+    })
+
+    it('should return 5 when neither are needed (NN, NN)', () => {
+      expect(calculatePlanningAbstractionScore('NN', 'NN')).toBe(5)
+    })
+
+    it('should throw an error for invalid planning values', () => {
+      expect(() => calculatePlanningAbstractionScore('INVALID', 'Y')).toThrow(
+        'Invalid planning or abstraction value'
+      )
+    })
+
+    it('should throw an error for invalid abstraction values', () => {
+      expect(() => calculatePlanningAbstractionScore('Y', 'INVALID')).toThrow(
+        'Invalid planning or abstraction value'
       )
     })
   })

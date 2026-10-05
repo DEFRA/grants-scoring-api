@@ -43,13 +43,14 @@ export const scoring = [
             .description(
               'The number of businesses using the water from the project'
             ),
-          planning: Joi.boolean()
+          planning: Joi.string()
+            .valid('Y', 'N', 'NN')
             .optional()
-            .description('Whether planning permission is held'),
+            .description('Whether planning permission is needed/held'),
           abstraction: Joi.string()
             .valid('Y', 'N', 'NN')
             .optional()
-            .description('Whether an abstraction license is held/required')
+            .description('Whether an abstraction licence is needed/held')
         })
       }
     },
@@ -61,7 +62,7 @@ export const scoring = [
         easting = 380712,
         northing = 396269,
         businessesUsingWater = 'FIVE_OR_MORE',
-        planning = true,
+        planning = 'Y',
         abstraction = 'NN'
       } = request.query
 
