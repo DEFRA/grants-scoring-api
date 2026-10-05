@@ -50,7 +50,7 @@ describe('Scoring Route', () => {
 
     const res = await server.inject({
       method: 'GET',
-      url: '/scoring/water-management?sectorsIrrigated=SOFT_AND_CANE_FRUIT&sectorsIrrigated=ARABLE&easting=380712&northing=396269&supplyOthers=5%2B&planning=true&abstraction=Y'
+      url: '/scoring/water-management?sectorsIrrigated=SOFT_AND_CANE_FRUIT&sectorsIrrigated=ARABLE&easting=380712&northing=396269&businessesUsingWater=FIVE_OR_MORE&planning=true&abstraction=Y'
     })
 
     expect(res.statusCode).toBe(StatusCodes.OK)
@@ -67,7 +67,7 @@ describe('Scoring Route', () => {
       ['SOFT_AND_CANE_FRUIT', 'ARABLE'], // sectorsIrrigated
       380712, // easting (parsed as number by Joi)
       396269, // northing (parsed as number by Joi)
-      '5+', // supplyOthers
+      'FIVE_OR_MORE', // businessesUsingWater
       true, // planning (parsed as boolean by Joi)
       'Y' // abstraction (parsed as string by Joi)
     )
@@ -112,7 +112,7 @@ describe('Scoring Route', () => {
       ['SOFT_AND_CANE_FRUIT'],
       380712,
       396269,
-      '5+',
+      'FIVE_OR_MORE',
       true,
       'NN'
     )
@@ -148,7 +148,7 @@ describe('Scoring Route', () => {
       ['SOFT_AND_CANE_FRUIT'], // sectorsIrrigated
       380712, // easting (default is number)
       396269, // northing (default is number)
-      '5+', // supplyOthers
+      'FIVE_OR_MORE', // businessesUsingWater
       true, // planning
       'NN' // abstraction (default)
     )

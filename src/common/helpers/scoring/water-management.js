@@ -4,12 +4,12 @@ export const calculateScore = async (
   sectorsIrrigated,
   easting,
   northing,
-  supplyOthers,
+  businessesUsingWater,
   planning,
   abstraction
 ) => {
   const sectorScore = calculateSectorScore(sectorsIrrigated)
-  const collaborationScore = calculateCollaborationScore(supplyOthers)
+  const collaborationScore = calculateCollaborationScore(businessesUsingWater)
   const planningAbstractionScore = calculatePlanningAbstractionScore(
     planning,
     abstraction
@@ -78,21 +78,31 @@ export const calculateSectorScore = (sectorsIrrigated) => {
   return Math.max(...scores)
 }
 
+export const collaborationScores = {
+  FIVE_OR_MORE: 10,
+  TWO_TO_FOUR: 5,
+  ONE: 0
+}
+
 /**
- * Collaboration is scored out of 10
- * @param supplyOthers
+ * Collaboration is scored out of 10.
+ * <br/>
+ * Scores awarded for the number of businesses using the water from this project:
+ * <li>10% - Five or more (FIVE_OR_MORE)</li>
+ * <li>5% - Two to Four (TWO_TO_FOUR)</li>
+ * <li>0% - One (ONE)</li>
+ *
+ * @param {string} businessesUsingWater - the number of businesses using the water from the project
+ * @returns {number} - the score awarded based on the number of businesses
  */
-const calculateCollaborationScore = (supplyOthers) => {
-  const scores = {
-    max: 10,
-    min: 0
+export const calculateCollaborationScore = (businessesUsingWater) => {
+  const score = collaborationScores[businessesUsingWater]
+
+  if (score === undefined) {
+    throw new Error('Invalid businessesUsingWater value')
   }
 
-  if (supplyOthers) {
-    return scores.max
-  } else {
-    return scores.min
-  }
+  return score
 }
 
 /**

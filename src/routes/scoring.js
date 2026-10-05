@@ -3,7 +3,8 @@ import Joi from 'joi'
 import Boom from '@hapi/boom'
 import {
   calculateScore as calculateWaterManagementScore,
-  sectorsIrrigatedScores
+  sectorsIrrigatedScores,
+  collaborationScores
 } from '#/common/helpers/scoring/water-management.js'
 
 export const GRANTS_UI_SUBJECT = 'grants-ui'
@@ -36,9 +37,12 @@ export const scoring = [
           northing: Joi.number()
             .optional()
             .description('The northing coordinate of the location'),
-          supplyOthers: Joi.string()
+          businessesUsingWater: Joi.string()
+            .valid(...Object.keys(collaborationScores))
             .optional()
-            .description('Whether the supply is shared with others'),
+            .description(
+              'The number of businesses using the water from the project'
+            ),
           planning: Joi.boolean()
             .optional()
             .description('Whether planning permission is held'),
@@ -56,7 +60,7 @@ export const scoring = [
         sectorsIrrigated = ['SOFT_AND_CANE_FRUIT'],
         easting = 380712,
         northing = 396269,
-        supplyOthers = '5+',
+        businessesUsingWater = 'FIVE_OR_MORE',
         planning = true,
         abstraction = 'NN'
       } = request.query
@@ -68,7 +72,7 @@ export const scoring = [
           sectorsIrrigated,
           easting,
           northing,
-          supplyOthers,
+          businessesUsingWater,
           planning,
           abstraction
         )

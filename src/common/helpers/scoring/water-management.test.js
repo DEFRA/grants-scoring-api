@@ -3,7 +3,8 @@ import {
   calculateScore,
   calculateScarcityScore,
   pointToHexagon,
-  calculateSectorScore
+  calculateSectorScore,
+  calculateCollaborationScore
 } from './water-management.js'
 
 describe('water-management helper', () => {
@@ -21,7 +22,7 @@ describe('water-management helper', () => {
         ['SOFT_AND_CANE_FRUIT'],
         380712,
         396269,
-        '5+',
+        'FIVE_OR_MORE',
         true,
         'Y'
       )
@@ -42,7 +43,7 @@ describe('water-management helper', () => {
       }
 
       await expect(
-        calculateScore(logger, db, null, 0, 0, null, false, 'N')
+        calculateScore(logger, db, null, 0, 0, 'ONE', false, 'N')
       ).rejects.toThrow('No sectors provided')
     })
   })
@@ -109,6 +110,32 @@ describe('water-management helper', () => {
     it('should throw an error if none of the provided sectors match', () => {
       expect(() => calculateSectorScore(['UNKNOWN_SECTOR'])).toThrow(
         'No valid sectors provided'
+      )
+    })
+  })
+
+  describe('calculateCollaborationScore', () => {
+    it('should return 10 for FIVE_OR_MORE', () => {
+      expect(calculateCollaborationScore('FIVE_OR_MORE')).toBe(10)
+    })
+
+    it('should return 5 for TWO_TO_FOUR', () => {
+      expect(calculateCollaborationScore('TWO_TO_FOUR')).toBe(5)
+    })
+
+    it('should return 0 for ONE', () => {
+      expect(calculateCollaborationScore('ONE')).toBe(0)
+    })
+
+    it('should throw an error for invalid values', () => {
+      expect(() => calculateCollaborationScore('INVALID')).toThrow(
+        'Invalid businessesUsingWater value'
+      )
+      expect(() => calculateCollaborationScore(null)).toThrow(
+        'Invalid businessesUsingWater value'
+      )
+      expect(() => calculateCollaborationScore(undefined)).toThrow(
+        'Invalid businessesUsingWater value'
       )
     })
   })
