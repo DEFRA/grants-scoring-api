@@ -2,7 +2,8 @@ import { describe, it, expect, vi } from 'vitest'
 import {
   calculateScore,
   calculateScarcityScore,
-  pointToHexagon
+  pointToHexagon,
+  calculateSectorScore
 } from './water-management.js'
 
 describe('water-management helper', () => {
@@ -17,7 +18,7 @@ describe('water-management helper', () => {
       const result = await calculateScore(
         logger,
         db,
-        'food',
+        ['SOFT_AND_CANE_FRUIT'],
         380712,
         396269,
         '5+',
@@ -34,86 +35,79 @@ describe('water-management helper', () => {
       })
     })
 
-    it('should calculate the total score correctly with minimal factors', async () => {
+    it('should throw an error if cropsIrrigated is missing', async () => {
       const db = {
         collection: vi.fn().mockReturnThis(),
         findOne: vi.fn().mockResolvedValue({ score: 2 }) // score 2 maps to 25 in scarcity
       }
 
-      const result = await calculateScore(
-        logger,
-        db,
-        null,
-        0,
-        0,
-        null,
-        false,
-        'N'
-      )
+      await expect(
+        calculateScore(logger, db, null, 0, 0, null, false, 'N')
+      ).rejects.toThrow('No crops provided')
+    })
+  })
 
-      expect(result).toEqual({
-        totalScore: 25,
-        sectorScore: 0,
-        scarcityScore: 25,
-        collaborationScore: 0,
-        planningAbstractionScore: 0
-      })
+  describe('calculateSectorScore', () => {
+    it('should return 25 for SOFT_AND_CANE_FRUIT', () => {
+      expect(calculateSectorScore(['SOFT_AND_CANE_FRUIT'])).toBe(25)
     })
 
-    it('should calculate the sector score as 25 if growing is truthy', async () => {
-      const db = {
-        collection: vi.fn().mockReturnThis(),
-        findOne: vi.fn().mockResolvedValue({ score: 2 })
-      }
-      const result = await calculateScore(
-        logger,
-        db,
-        'anything',
-        0,
-        0,
-        false,
-        false,
-        'N'
-      )
-      expect(result.sectorScore).toBe(25)
+    it('should return 25 for PROTECTED_EDIBLE_CROPS', () => {
+      expect(calculateSectorScore(['PROTECTED_EDIBLE_CROPS'])).toBe(25)
     })
 
-    it('should calculate the collaboration score as 10 if supplyOthers is truthy', async () => {
-      const db = {
-        collection: vi.fn().mockReturnThis(),
-        findOne: vi.fn().mockResolvedValue({ score: 2 })
-      }
-      const result = await calculateScore(
-        logger,
-        db,
-        null,
-        0,
-        0,
-        'yes',
-        false,
-        'N'
-      )
-      expect(result.collaborationScore).toBe(10)
+    it('should return 20 for ORNAMENTALS', () => {
+      expect(calculateSectorScore(['ORNAMENTALS'])).toBe(20)
     })
 
-    it('should calculate planningAbstractionScore as 5 only if planning is true AND abstraction is Y', async () => {
-      const db = {
-        collection: vi.fn().mockReturnThis(),
-        findOne: vi.fn().mockResolvedValue({ score: 2 })
-      }
+    it('should return 20 for FOREST_NURSERY', () => {
+      expect(calculateSectorScore(['FOREST_NURSERY'])).toBe(20)
+    })
 
+    it('should return 15 for TOP_AND_STONE_FRUIT', () => {
+      expect(calculateSectorScore(['TOP_AND_STONE_FRUIT'])).toBe(15)
+    })
+
+    it('should return 15 for VINEYARDS', () => {
+      expect(calculateSectorScore(['VINEYARDS'])).toBe(15)
+    })
+
+    it('should return 15 for FIELD_SCALE_VEGETABLES', () => {
+      expect(calculateSectorScore(['FIELD_SCALE_VEGETABLES'])).toBe(15)
+    })
+
+    it('should return 5 for ARABLE', () => {
+      expect(calculateSectorScore(['ARABLE'])).toBe(5)
+    })
+
+    it('should return 2 for GRASS_FEEDING_LIVESTOCK_COMMERCIAL_TURF', () => {
       expect(
-        (await calculateScore(logger, db, null, 0, 0, false, true, 'Y'))
-          .planningAbstractionScore
+        calculateSectorScore(['GRASS_FEEDING_LIVESTOCK_COMMERCIAL_TURF'])
+      ).toBe(2)
+    })
+
+    it('should return the highest score when multiple crops are provided', () => {
+      expect(
+        calculateSectorScore(['ARABLE', 'SOFT_AND_CANE_FRUIT', 'VINEYARDS'])
+      ).toBe(25)
+      expect(
+        calculateSectorScore([
+          'ARABLE',
+          'GRASS_FEEDING_LIVESTOCK_COMMERCIAL_TURF'
+        ])
       ).toBe(5)
-      expect(
-        (await calculateScore(logger, db, null, 0, 0, false, false, 'Y'))
-          .planningAbstractionScore
-      ).toBe(0)
-      expect(
-        (await calculateScore(logger, db, null, 0, 0, false, true, false))
-          .planningAbstractionScore
-      ).toBe(0)
+    })
+
+    it('should throw an error if no crops are provided', () => {
+      expect(() => calculateSectorScore([])).toThrow('No crops provided')
+      expect(() => calculateSectorScore(null)).toThrow('No crops provided')
+      expect(() => calculateSectorScore(undefined)).toThrow('No crops provided')
+    })
+
+    it('should throw an error if none of the provided crops match', () => {
+      expect(() => calculateSectorScore(['UNKNOWN_CROP'])).toThrow(
+        'No valid crops provided'
+      )
     })
   })
 

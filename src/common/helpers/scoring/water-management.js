@@ -1,14 +1,14 @@
 export const calculateScore = async (
   logger,
   db,
-  growing,
+  cropsIrrigated,
   easting,
   northing,
   supplyOthers,
   planning,
   abstraction
 ) => {
-  const sectorScore = calculateSectorScore(growing)
+  const sectorScore = calculateSectorScore(cropsIrrigated)
   const collaborationScore = calculateCollaborationScore(supplyOthers)
   const planningAbstractionScore = calculatePlanningAbstractionScore(
     planning,
@@ -34,21 +34,58 @@ export const calculateScore = async (
 }
 
 /**
- * Sector is scored out of 25
- * @param growing
- * @returns {number}
+ * Sector is scored out of 25.
+ * <br/>
+ * If multiple crops are being irrigated using the water from this project, the highest score is used.
+ *
+ * Scores awarded for crops irrigated using the water from this project:
+ * <li>25% - Soft & Cane Fruit (SOFT_AND_CANE_FRUIT), Protected edible crops (PROTECTED_EDIBLE_CROPS)</li>
+ * <li>20% - Ornamentals (ORNAMENTALS), Forest Nursery (FOREST_NURSERY)</li>
+ * <li>15% - Top & Stone Fruit (TOP_AND_STONE_FRUIT), Vineyards (VINEYARDS), Field scale vegetables (FIELD_SCALE_VEGETABLES)</li>
+ * <li>5% - Arable (ARABLE)</li>
+ * <li>2% - Grass - for feeding livestock, commercial turf (GRASS_FEEDING_LIVESTOCK_COMMERCIAL_TURF)</li>
+ *
+ * @param {string[]} cropsIrrigated - crops irrigated using the water from the project
+ * @returns {number} - the highest score awarded out of the crops provided
  */
-const calculateSectorScore = (growing) => {
-  const scores = {
-    max: 25,
-    min: 0
+export const calculateSectorScore = (cropsIrrigated) => {
+  if (
+    !cropsIrrigated ||
+    (Array.isArray(cropsIrrigated) && cropsIrrigated.length === 0)
+  ) {
+    throw new Error('No crops provided')
   }
 
-  if (growing) {
-    return scores.max
-  } else {
-    return scores.min
+  const sectorScores = {
+    SOFT_AND_CANE_FRUIT: 25,
+    PROTECTED_EDIBLE_CROPS: 25,
+    ORNAMENTALS: 20,
+    FOREST_NURSERY: 20,
+    TOP_AND_STONE_FRUIT: 15,
+    VINEYARDS: 15,
+    FIELD_SCALE_VEGETABLES: 15,
+    ARABLE: 5,
+    GRASS_FEEDING_LIVESTOCK_COMMERCIAL_TURF: 2
   }
+
+  if (Array.isArray(cropsIrrigated)) {
+    const scores = cropsIrrigated
+      .map((crop) => sectorScores[crop])
+      .filter((score) => score !== undefined)
+
+    if (scores.length === 0) {
+      throw new Error('No valid crops provided')
+    }
+    return Math.max(...scores)
+  }
+
+  if (typeof cropsIrrigated === 'string') {
+    if (sectorScores[cropsIrrigated] !== undefined) {
+      return sectorScores[cropsIrrigated]
+    }
+  }
+
+  throw new Error('No valid crops provided')
 }
 
 /**

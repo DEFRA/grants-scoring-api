@@ -20,9 +20,12 @@ export const scoring = [
           grant: Joi.string().required().description('The grant identifier')
         }),
         query: Joi.object({
-          growing: Joi.string()
+          cropsIrrigated: Joi.array()
+            .items(Joi.string())
             .optional()
-            .description('The type of crop being grown'),
+            .description(
+              'The crops being irrigated using the water from the project'
+            ),
           easting: Joi.number()
             .optional()
             .description('The easting coordinate of the location'),
@@ -46,7 +49,7 @@ export const scoring = [
       const { grant } = request.params
       // TODO BH remove defaults
       const {
-        growing = 'food',
+        cropsIrrigated = ['SOFT_AND_CANE_FRUIT'],
         easting = 380712,
         northing = 396269,
         supplyOthers = '5+',
@@ -58,7 +61,7 @@ export const scoring = [
         const scores = await calculateWaterManagementScore(
           request.server.logger,
           request.server.db,
-          growing,
+          cropsIrrigated,
           easting,
           northing,
           supplyOthers,

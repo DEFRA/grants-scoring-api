@@ -43,7 +43,7 @@ describe('Scoring Route', () => {
 
     const res = await server.inject({
       method: 'GET',
-      url: '/scoring/water-management?growing=food&easting=380712&northing=396269&supplyOthers=5%2B&planning=true&abstraction=Y'
+      url: '/scoring/water-management?cropsIrrigated=SOFT_AND_CANE_FRUIT&cropsIrrigated=ARABLE&easting=380712&northing=396269&supplyOthers=5%2B&planning=true&abstraction=Y'
     })
 
     expect(res.statusCode).toBe(StatusCodes.OK)
@@ -57,7 +57,7 @@ describe('Scoring Route', () => {
     expect(waterManagementHelper.calculateScore).toHaveBeenCalledWith(
       undefined, // logger
       {}, // db
-      'food', // growing
+      ['SOFT_AND_CANE_FRUIT', 'ARABLE'], // cropsIrrigated
       380712, // easting (parsed as number by Joi)
       396269, // northing (parsed as number by Joi)
       '5+', // supplyOthers
@@ -102,7 +102,7 @@ describe('Scoring Route', () => {
     expect(waterManagementHelper.calculateScore).toHaveBeenCalledWith(
       undefined, // logger
       {}, // db
-      'food', // growing
+      ['SOFT_AND_CANE_FRUIT'], // cropsIrrigated
       380712, // easting (default is number)
       396269, // northing (default is number)
       '5+', // supplyOthers
