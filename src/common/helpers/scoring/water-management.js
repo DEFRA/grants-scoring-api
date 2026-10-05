@@ -124,16 +124,17 @@ export const calculateScarcityScore = async (logger, db, easting, northing) => {
  *  - British National Grid
  *  - Regular flat-top hexagons
  *  - 100 m between opposite sides
- *  - Hexagon centred at BNG (0, 0) (?)
+ *  - 8660.260000033304 m² area
  *  - Tessellation pattern
  *
+ * @param logger
  * @param {number} easting
  * @param {number} northing
  * @returns {{q: number, r: number}} - coordinates used to identify a hexagon, q ≈ x and r ≈ y
  */
 export const pointToHexagon = (logger, easting, northing) => {
   const hexagon = {
-    area: 100,
+    area: 8660.260000033304,
     qMultiplier: 2 / 3,
     rMultiplierEasting: -1 / 3,
     rMultiplierNorthing: Math.sqrt(3) / 3,
@@ -142,11 +143,11 @@ export const pointToHexagon = (logger, easting, northing) => {
     sqrt3: Math.sqrt(3)
   }
 
-  // Distance between opposite sides of the hexagon.
-  const hexagonWidth = hexagon.area
-
-  // Regular flat-top hexagon distance between opposite sides
-  const hexagonSideLength = hexagonWidth / hexagon.sqrt3
+  // Regular flat-top hexagon side length from area: A = (3 * sqrt(3) / 2) * s^2
+  const hexagonSideLength = Math.sqrt(
+    (hexagon.sizeNumeratorMultiplier * hexagon.area) /
+      (hexagon.sizeDenominatorMultiplier * hexagon.sqrt3)
+  )
 
   // Convert BNG coordinates to flat-top hexagon axial coordinates.
   const q = (hexagon.qMultiplier * easting) / hexagonSideLength
