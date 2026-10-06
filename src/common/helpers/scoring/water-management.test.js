@@ -2,12 +2,16 @@ import { describe, it, expect, vi } from 'vitest'
 import {
   calculateScore,
   calculateScarcityScore,
-  pointToHexagon
+  pointToHexagon,
+  calculateSectorScore,
+  calculateCollaborationScore,
+  calculatePlanningAbstractionScore
 } from './water-management.js'
 
 describe('water-management helper', () => {
   describe('calculateScore', () => {
     const logger = { info: vi.fn() }
+
     it('should calculate the total score correctly with all positive factors', async () => {
       const db = {
         collection: vi.fn().mockReturnThis(),
@@ -17,11 +21,11 @@ describe('water-management helper', () => {
       const result = await calculateScore(
         logger,
         db,
-        'food',
+        ['SOFT_AND_CANE_FRUIT'],
         380712,
         396269,
-        '5+',
-        true,
+        'FIVE_OR_MORE',
+        'Y',
         'Y'
       )
 
@@ -33,92 +37,107 @@ describe('water-management helper', () => {
         planningAbstractionScore: 5
       })
     })
+  })
 
-    it('should calculate the total score correctly with minimal factors', async () => {
-      const db = {
-        collection: vi.fn().mockReturnThis(),
-        findOne: vi.fn().mockResolvedValue({ score: 2 }) // score 2 maps to 25 in scarcity
-      }
-
-      const result = await calculateScore(
-        logger,
-        db,
-        null,
-        0,
-        0,
-        null,
-        false,
-        'N'
-      )
-
-      expect(result).toEqual({
-        totalScore: 25,
-        sectorScore: 0,
-        scarcityScore: 25,
-        collaborationScore: 0,
-        planningAbstractionScore: 0
-      })
+  describe('calculateSectorScore', () => {
+    it('should return 25 for SOFT_AND_CANE_FRUIT', () => {
+      expect(calculateSectorScore(['SOFT_AND_CANE_FRUIT'])).toBe(25)
     })
 
-    it('should calculate the sector score as 25 if growing is truthy', async () => {
-      const db = {
-        collection: vi.fn().mockReturnThis(),
-        findOne: vi.fn().mockResolvedValue({ score: 2 })
-      }
-      const result = await calculateScore(
-        logger,
-        db,
-        'anything',
-        0,
-        0,
-        false,
-        false,
-        'N'
-      )
-      expect(result.sectorScore).toBe(25)
+    it('should return 25 for PROTECTED_EDIBLE_CROPS', () => {
+      expect(calculateSectorScore(['PROTECTED_EDIBLE_CROPS'])).toBe(25)
     })
 
-    it('should calculate the collaboration score as 10 if supplyOthers is truthy', async () => {
-      const db = {
-        collection: vi.fn().mockReturnThis(),
-        findOne: vi.fn().mockResolvedValue({ score: 2 })
-      }
-      const result = await calculateScore(
-        logger,
-        db,
-        null,
-        0,
-        0,
-        'yes',
-        false,
-        'N'
-      )
-      expect(result.collaborationScore).toBe(10)
+    it('should return 20 for ORNAMENTALS', () => {
+      expect(calculateSectorScore(['ORNAMENTALS'])).toBe(20)
     })
 
-    it('should calculate planningAbstractionScore as 5 only if planning is true AND abstraction is Y', async () => {
-      const db = {
-        collection: vi.fn().mockReturnThis(),
-        findOne: vi.fn().mockResolvedValue({ score: 2 })
-      }
+    it('should return 20 for FOREST_NURSERY', () => {
+      expect(calculateSectorScore(['FOREST_NURSERY'])).toBe(20)
+    })
 
+    it('should return 15 for TOP_AND_STONE_FRUIT', () => {
+      expect(calculateSectorScore(['TOP_AND_STONE_FRUIT'])).toBe(15)
+    })
+
+    it('should return 15 for VINEYARDS', () => {
+      expect(calculateSectorScore(['VINEYARDS'])).toBe(15)
+    })
+
+    it('should return 15 for FIELD_SCALE_VEGETABLES', () => {
+      expect(calculateSectorScore(['FIELD_SCALE_VEGETABLES'])).toBe(15)
+    })
+
+    it('should return 5 for ARABLE', () => {
+      expect(calculateSectorScore(['ARABLE'])).toBe(5)
+    })
+
+    it('should return 2 for GRASS_FEEDING_LIVESTOCK_COMMERCIAL_TURF', () => {
       expect(
-        (await calculateScore(logger, db, null, 0, 0, false, true, 'Y'))
-          .planningAbstractionScore
+        calculateSectorScore(['GRASS_FEEDING_LIVESTOCK_COMMERCIAL_TURF'])
+      ).toBe(2)
+    })
+
+    it('should return the highest score when multiple sectors are provided', () => {
+      expect(
+        calculateSectorScore(['ARABLE', 'SOFT_AND_CANE_FRUIT', 'VINEYARDS'])
+      ).toBe(25)
+      expect(
+        calculateSectorScore([
+          'ARABLE',
+          'GRASS_FEEDING_LIVESTOCK_COMMERCIAL_TURF'
+        ])
       ).toBe(5)
-      expect(
-        (await calculateScore(logger, db, null, 0, 0, false, false, 'Y'))
-          .planningAbstractionScore
-      ).toBe(0)
-      expect(
-        (await calculateScore(logger, db, null, 0, 0, false, true, false))
-          .planningAbstractionScore
-      ).toBe(0)
+    })
+  })
+
+  describe('calculateCollaborationScore', () => {
+    it('should return 10 for FIVE_OR_MORE', () => {
+      expect(calculateCollaborationScore('FIVE_OR_MORE')).toBe(10)
+    })
+
+    it('should return 5 for TWO_TO_FOUR', () => {
+      expect(calculateCollaborationScore('TWO_TO_FOUR')).toBe(5)
+    })
+
+    it('should return 0 for ONE', () => {
+      expect(calculateCollaborationScore('ONE')).toBe(0)
+    })
+  })
+
+  describe('calculatePlanningAbstractionScore', () => {
+    it('should return 5 when planning and abstraction are held (Y, Y)', () => {
+      expect(calculatePlanningAbstractionScore('Y', 'Y')).toBe(5)
+    })
+
+    it('should return 0 when neither are held (N, N)', () => {
+      expect(calculatePlanningAbstractionScore('N', 'N')).toBe(0)
+    })
+
+    it('should return 0 when only abstraction is held (N, Y)', () => {
+      expect(calculatePlanningAbstractionScore('N', 'Y')).toBe(0)
+    })
+
+    it('should return 0 when only planning is held (Y, N)', () => {
+      expect(calculatePlanningAbstractionScore('Y', 'N')).toBe(0)
+    })
+
+    it('should return 5 when planning not needed and abstraction held (NN, Y)', () => {
+      expect(calculatePlanningAbstractionScore('NN', 'Y')).toBe(5)
+    })
+
+    it('should return 5 when planning held and abstraction not needed (Y, NN)', () => {
+      expect(calculatePlanningAbstractionScore('Y', 'NN')).toBe(5)
+    })
+
+    it('should return 5 when neither are needed (NN, NN)', () => {
+      expect(calculatePlanningAbstractionScore('NN', 'NN')).toBe(5)
     })
   })
 
   describe('calculateScarcityScore', () => {
     const logger = { info: vi.fn() }
+
     const mockDb = (score) => ({
       collection: vi.fn().mockReturnThis(),
       findOne: vi.fn().mockResolvedValue(score !== undefined ? { score } : null)
@@ -143,20 +162,11 @@ describe('water-management helper', () => {
       }
     })
 
-    it('should throw an error for scores not in the mapping (0, 1)', async () => {
-      for (const hexScore of [0, 1]) {
-        const db = mockDb(hexScore)
-        await expect(calculateScarcityScore(logger, db, 0, 0)).rejects.toThrow(
-          'Hexagon score not found'
-        )
-      }
-    })
-
-    it('should throw an error if hexagon is not found', async () => {
+    it('should return zero if hexagon is not found', async () => {
       const db = mockDb(undefined)
-      await expect(calculateScarcityScore(logger, db, 0, 0)).rejects.toThrow(
-        'Hexagon not found for q: 0, r: 0'
-      )
+
+      const score = await calculateScarcityScore(logger, db, 0, 0)
+      expect(score).toBe(0)
     })
   })
 

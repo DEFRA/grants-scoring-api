@@ -1,9 +1,15 @@
 import { StatusCodes } from 'http-status-codes'
 import Joi from 'joi'
 import Boom from '@hapi/boom'
-import { calculateScore as calculateWaterManagementScore } from '#/common/helpers/scoring/water-management.js'
+import {
+  calculateScore as calculateWaterManagementScore,
+  sectorsIrrigatedScores,
+  collaborationScores
+} from '#/common/helpers/scoring/water-management.js'
 
 export const GRANTS_UI_SUBJECT = 'grants-ui'
+
+const planningAbstractionValues = ['Y', 'N', 'NN']
 
 export const scoring = [
   {
@@ -19,49 +25,61 @@ export const scoring = [
         params: Joi.object({
           grant: Joi.string().required().description('The grant identifier')
         }),
+        // TODO remove optional and default
         query: Joi.object({
-          growing: Joi.string()
+          sectorsIrrigated: Joi.array()
+            .items(Joi.string().valid(...Object.keys(sectorsIrrigatedScores)))
+            .single()
             .optional()
-            .description('The type of crop being grown'),
+            .default(['SOFT_AND_CANE_FRUIT'])
+            .description(
+              'The sectors being irrigated using the water from the project'
+            ),
           easting: Joi.number()
-            .optional()
+            .required()
             .description('The easting coordinate of the location'),
           northing: Joi.number()
-            .optional()
+            .required()
             .description('The northing coordinate of the location'),
-          supplyOthers: Joi.string()
+          businessesUsingWater: Joi.string()
+            .valid(...Object.keys(collaborationScores))
             .optional()
-            .description('Whether the supply is shared with others'),
-          planning: Joi.boolean()
+            .default('FIVE_OR_MORE')
+            .description(
+              'The number of businesses using the water from the project'
+            ),
+          planning: Joi.string()
+            .valid(...planningAbstractionValues)
             .optional()
-            .description('Whether planning permission is held'),
+            .default('Y')
+            .description('Whether planning permission is needed/held'),
           abstraction: Joi.string()
-            .valid('Y', 'N', 'NN')
+            .valid(...planningAbstractionValues)
             .optional()
-            .description('Whether an abstraction license is held/required')
+            .default('NN')
+            .description('Whether an abstraction licence is needed/held')
         })
       }
     },
     handler: async (request, h) => {
       const { grant } = request.params
-      // TODO BH remove defaults
       const {
-        growing = 'food',
-        easting = 380712,
-        northing = 396269,
-        supplyOthers = '5+',
-        planning = true,
-        abstraction = 'NN'
+        sectorsIrrigated,
+        easting,
+        northing,
+        businessesUsingWater,
+        planning,
+        abstraction
       } = request.query
 
       if (grant === 'water-management') {
         const scores = await calculateWaterManagementScore(
           request.server.logger,
           request.server.db,
-          growing,
+          sectorsIrrigated,
           easting,
           northing,
-          supplyOthers,
+          businessesUsingWater,
           planning,
           abstraction
         )

@@ -1,15 +1,15 @@
 export const calculateScore = async (
   logger,
   db,
-  growing,
+  sectorsIrrigated,
   easting,
   northing,
-  supplyOthers,
+  businessesUsingWater,
   planning,
   abstraction
 ) => {
-  const sectorScore = calculateSectorScore(growing)
-  const collaborationScore = calculateCollaborationScore(supplyOthers)
+  const sectorScore = calculateSectorScore(sectorsIrrigated)
+  const collaborationScore = calculateCollaborationScore(businessesUsingWater)
   const planningAbstractionScore = calculatePlanningAbstractionScore(
     planning,
     abstraction
@@ -33,62 +33,85 @@ export const calculateScore = async (
   }
 }
 
-/**
- * Sector is scored out of 25
- * @param growing
- * @returns {number}
- */
-const calculateSectorScore = (growing) => {
-  const scores = {
-    max: 25,
-    min: 0
-  }
-
-  if (growing) {
-    return scores.max
-  } else {
-    return scores.min
-  }
+export const sectorsIrrigatedScores = {
+  SOFT_AND_CANE_FRUIT: 25,
+  PROTECTED_EDIBLE_CROPS: 25,
+  ORNAMENTALS: 20,
+  FOREST_NURSERY: 20,
+  TOP_AND_STONE_FRUIT: 15,
+  VINEYARDS: 15,
+  FIELD_SCALE_VEGETABLES: 15,
+  ARABLE: 5,
+  GRASS_FEEDING_LIVESTOCK_COMMERCIAL_TURF: 2
 }
 
 /**
- * Collaboration is scored out of 10
- * @param supplyOthers
+ * Sector is scored out of 25.
+ * <br/>
+ * If multiple sectors are being irrigated using the water from this project, the highest score is used.
+ *
+ * Scores awarded for sectors irrigated using the water from this project:
+ * <li>25% - Soft & Cane Fruit (SOFT_AND_CANE_FRUIT), Protected edible crops (PROTECTED_EDIBLE_CROPS)</li>
+ * <li>20% - Ornamentals (ORNAMENTALS), Forest Nursery (FOREST_NURSERY)</li>
+ * <li>15% - Top & Stone Fruit (TOP_AND_STONE_FRUIT), Vineyards (VINEYARDS), Field scale vegetables (FIELD_SCALE_VEGETABLES)</li>
+ * <li>5% - Arable (ARABLE)</li>
+ * <li>2% - Grass - for feeding livestock, commercial turf (GRASS_FEEDING_LIVESTOCK_COMMERCIAL_TURF)</li>
+ *
+ * @param {string[]} sectorsIrrigated - sectors irrigated using the water from the project
+ * @returns {number} - the highest score awarded out of the sectors provided
  */
-const calculateCollaborationScore = (supplyOthers) => {
-  const scores = {
-    max: 10,
-    min: 0
-  }
+export const calculateSectorScore = (sectorsIrrigated) => {
+  return sectorsIrrigated
+    .map((sector) => sectorsIrrigatedScores[sector])
+    .filter((score) => score !== undefined)
+    .reduce((maxScore, score) => Math.max(maxScore, score), 0)
+}
 
-  if (supplyOthers) {
-    return scores.max
-  } else {
-    return scores.min
-  }
+export const collaborationScores = {
+  FIVE_OR_MORE: 10,
+  TWO_TO_FOUR: 5,
+  ONE: 0
 }
 
 /**
- * Planning/EA is scored out of 5
- * @param planning
- * @param abstraction
- * @returns {number}
+ * Collaboration is scored out of 10.
+ * <br/>
+ * Scores awarded for the number of businesses using the water from this project:
+ * <li>10% - Five or more (FIVE_OR_MORE)</li>
+ * <li>5% - Two to Four (TWO_TO_FOUR)</li>
+ * <li>0% - One (ONE)</li>
+ *
+ * @param {string} businessesUsingWater - the number of businesses using the water from the project
+ * @returns {number} - the score awarded based on the number of businesses
  */
-const calculatePlanningAbstractionScore = (planning, abstraction) => {
-  const scores = {
-    max: 5,
-    min: 0
-  }
+export const calculateCollaborationScore = (businessesUsingWater) => {
+  return collaborationScores[businessesUsingWater]
+}
 
-  if (planning && abstraction) {
-    return scores.max
-  } else {
-    return scores.min
-  }
+/**
+ * Planning/Abstraction is scored out of 5.
+ * <br/>
+ * Scores awarded based on if planning permission and abstraction licence are needed/held:
+ * <li>5% - Planning and abstraction are held</li>
+ * <li>0% - Neither planning nor abstraction are held</li>
+ * <li>0% - Abstraction is held, but planning is NOT held</li>
+ * <li>0% - Planning is held, but abstraction is NOT held</li>
+ * <li>5% - Abstraction is held, and planning is not needed</li>
+ * <li>5% - Planning is held, and abstraction is not needed</li>
+ * <li>5% - Neither planning nor abstraction is needed</li>
+ *
+ * @param {string} planning - whether planning permission is needed/held
+ * @param {string} abstraction - whether an abstraction licence is needed/held
+ * @returns {number} - the score awarded based on whether planning and abstraction are needed/held
+ */
+export const calculatePlanningAbstractionScore = (planning, abstraction) => {
+  const maxScore = 5
+  return planning !== 'N' && abstraction !== 'N' ? maxScore : 0
 }
 
 /**
  * Scarcity is scored out of a maximum percentage
+ * @param logger
  * @param db
  * @param easting
  * @param northing
@@ -109,12 +132,13 @@ export const calculateScarcityScore = async (logger, db, easting, northing) => {
   const { q, r } = pointToHexagon(logger, easting, northing)
 
   const score = await getHexagonScoreFromDatastore(db, q, r)
-
-  const percentage = scoreToPercentageMappings[score]
-  if (percentage === undefined) {
-    throw new Error('Hexagon score not found')
+  if (!score) {
+    logger.info(
+      `Score not found for location q: ${q} and r: ${r}, derived from easting: ${easting} and northing: ${northing}`
+    )
   }
-  return percentage
+
+  return scoreToPercentageMappings[score] ?? 0
 }
 
 /**
@@ -193,8 +217,5 @@ export const pointToHexagon = (logger, easting, northing) => {
 
 const getHexagonScoreFromDatastore = async (db, q, r) => {
   const hex = await db.collection('hexagons').findOne({ q, r })
-  if (!hex) {
-    throw new Error(`Hexagon not found for q: ${q}, r: ${r}`)
-  }
-  return hex.score
+  return hex?.score ?? 0
 }
