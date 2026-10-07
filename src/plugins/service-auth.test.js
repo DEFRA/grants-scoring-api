@@ -13,7 +13,7 @@ vi.mock('../common/helpers/logging/logger.js', () => {
   }
 })
 
-describe.skip('serviceAuth plugin', () => {
+describe('serviceAuth plugin', () => {
   const defaultConfigValues = {
     'serviceAuth.allowedServices': '',
     'serviceAuth.jwksUri': 'http://jwks',
