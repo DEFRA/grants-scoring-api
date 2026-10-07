@@ -25,13 +25,11 @@ export const scoring = [
         params: Joi.object({
           grant: Joi.string().required().description('The grant identifier')
         }),
-        // TODO remove optional and default
         query: Joi.object({
           sectorsIrrigated: Joi.array()
             .items(Joi.string().valid(...Object.keys(sectorsIrrigatedScores)))
             .single()
-            .optional()
-            .default(['SOFT_AND_CANE_FRUIT'])
+            .required()
             .description(
               'The sectors being irrigated using the water from the project'
             ),
@@ -43,20 +41,17 @@ export const scoring = [
             .description('The northing coordinate of the location'),
           businessesUsingWater: Joi.string()
             .valid(...Object.keys(collaborationScores))
-            .optional()
-            .default('FIVE_OR_MORE')
+            .required()
             .description(
               'The number of businesses using the water from the project'
             ),
           planning: Joi.string()
             .valid(...planningAbstractionValues)
-            .optional()
-            .default('Y')
+            .required()
             .description('Whether planning permission is needed/held'),
           abstraction: Joi.string()
             .valid(...planningAbstractionValues)
-            .optional()
-            .default('NN')
+            .required()
             .description('Whether an abstraction licence is needed/held')
         })
       }

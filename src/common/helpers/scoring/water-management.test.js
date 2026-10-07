@@ -78,6 +78,10 @@ describe('water-management helper', () => {
       ).toBe(2)
     })
 
+    it('should return 0 for SOMETHING_ELSE', () => {
+      expect(calculateSectorScore(['SOMETHING_ELSE'])).toBe(0)
+    })
+
     it('should return the highest score when multiple sectors are provided', () => {
       expect(
         calculateSectorScore(['ARABLE', 'SOFT_AND_CANE_FRUIT', 'VINEYARDS'])
@@ -88,6 +92,7 @@ describe('water-management helper', () => {
           'GRASS_FEEDING_LIVESTOCK_COMMERCIAL_TURF'
         ])
       ).toBe(5)
+      expect(calculateSectorScore(['ARABLE', 'SOMETHING_ELSE'])).toBe(5)
     })
   })
 
