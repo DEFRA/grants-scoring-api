@@ -1,5 +1,6 @@
 import Boom from '@hapi/boom'
 import { createLogger } from '../common/helpers/logging/logger.js'
+import { config } from '../config.js'
 
 const logger = createLogger()
 
@@ -12,17 +13,63 @@ export const serviceAuth = {
     register: async (server) => {
       addServiceAccessPreHandler(server)
 
-      server.auth.scheme('local', () => ({
-        authenticate: (_request, h) => {
-          return h.authenticated({
-            credentials: {
-              sub: `s/${LOCAL_SUBJECT}`,
-              serviceName: LOCAL_SUBJECT
-            }
-          })
+      const isLocal = config.get('cdpEnvironment') === 'local'
+      if (isLocal) {
+        server.auth.scheme('local', () => ({
+          authenticate: (_request, h) => {
+            return h.authenticated({
+              credentials: {
+                sub: `s/${LOCAL_SUBJECT}`,
+                serviceName: LOCAL_SUBJECT
+              }
+            })
+          }
+        }))
+        server.auth.strategy('service', 'local')
+        server.auth.default('service')
+        return
+      }
+
+      const jwksUri = config.get('serviceAuth.jwksUri')
+      const audience = config.get('serviceAuth.audience')
+      const issuer = config.get('serviceAuth.issuer')
+      if (!jwksUri) {
+        throw new Error('Missing serviceAuth.jwksUri')
+      }
+      if (!audience) {
+        throw new Error('Missing serviceAuth.audience')
+      }
+      if (!issuer) {
+        throw new Error('Missing serviceAuth.issuer')
+      }
+
+      server.auth.strategy('service', 'jwt', {
+        keys: {
+          uri: jwksUri
+        },
+        verify: {
+          aud: audience,
+          iss: issuer,
+          sub: false
+        },
+        validate: (artifacts) => {
+          const sub = artifacts.decoded.payload.sub
+          if (!sub) {
+            logger.warn('Service-to-service auth rejected: missing sub claim')
+            throw Boom.unauthorized()
+          }
+
+          const serviceName = sub.split('/').pop()
+          if (serviceNotAllowed(serviceName)) {
+            logger.warn(
+              `Service-to-service auth rejected: service '${serviceName}' is not in allowed list`
+            )
+            throw Boom.unauthorized()
+          }
+
+          return { isValid: true, credentials: { sub, serviceName } }
         }
-      }))
-      server.auth.strategy('service', 'local')
+      })
       server.auth.default('service')
     }
   }
@@ -47,4 +94,15 @@ const addServiceAccessPreHandler = (server) => {
 
     return h.continue
   })
+}
+
+const serviceNotAllowed = (serviceName) => {
+  const allowedServices = config
+    .get('serviceAuth.allowedServices')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+
+  // service allowed if allowedServices is empty
+  return allowedServices.length > 0 && !allowedServices.includes(serviceName)
 }
