@@ -1,4 +1,7 @@
+import https from 'node:https'
+import http from 'node:http'
 import Hapi from '@hapi/hapi'
+import Wreck from '@hapi/wreck'
 
 import { secureContext } from '@defra/hapi-secure-context'
 
@@ -14,6 +17,8 @@ import Jwt from '@hapi/jwt'
 import { serviceAuth } from '#/plugins/service-auth.js'
 
 export async function createServer() {
+  Wreck.agents.https = https.globalAgent
+  Wreck.agents.http = http.globalAgent
   const server = Hapi.server({
     host: config.get('host'),
     port: config.get('port'),
