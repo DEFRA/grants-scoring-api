@@ -4,7 +4,7 @@ services:
   floci:
     image: hectorvent/floci:latest-aws
     ports:
-      - '4566:4566'
+      - '4866:4566'
     env_file:
       - 'compose/aws.env'
     environment:
@@ -14,19 +14,12 @@ services:
     networks:
       - grants-scoring-net
 
-  redis:
-    image: redis:7.2.3-alpine3.18
-    ports:
-      - '6379:6379'
-    networks:
-      - grants-scoring-net
-
   mongodb:
     image: mongo:7.0.28
     networks:
       - grants-scoring-net
     ports:
-      - '27017:27017'
+      - '27087:27017'
     volumes:
       - ./compose/mongo:/docker-entrypoint-initdb.d:ro
       - mongodb-data:/data
@@ -44,7 +37,7 @@ services:
       context: .
       target: development
     ports:
-      - '3001:3001'
+      - '3015:3001'
     links:
       - 'floci:floci'
       - 'mongodb:mongodb'
