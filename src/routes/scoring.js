@@ -28,14 +28,19 @@ export const scoring = [
         query: Joi.object({
           sectorsIrrigated: Joi.any()
             .custom((value, helpers) => {
-              const array = typeof value === 'string'
-                ? value.split(',')
-                : Array.isArray(value)
-                  ? value.flatMap((v) => (typeof v === 'string' ? v.split(',') : v))
-                  : value
+              const array =
+                typeof value === 'string'
+                  ? value.split(',')
+                  : Array.isArray(value)
+                    ? value.flatMap((v) =>
+                        typeof v === 'string' ? v.split(',') : v
+                      )
+                    : value
 
               const { error, value: validated } = Joi.array()
-                .items(Joi.string().valid(...Object.keys(sectorsIrrigatedScores)))
+                .items(
+                  Joi.string().valid(...Object.keys(sectorsIrrigatedScores))
+                )
                 .single()
                 .validate(array)
 
