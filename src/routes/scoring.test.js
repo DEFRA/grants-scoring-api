@@ -118,6 +118,29 @@ describe('Scoring Route', () => {
     )
   })
 
+  it('should support comma-separated sectorsIrrigated values', async () => {
+    waterManagementHelper.calculateScore.mockResolvedValue({
+      totalScore: 100
+    })
+
+    const res = await server.inject({
+      method: 'GET',
+      url: '/scoring/water-management?easting=380712&northing=396269&sectorsIrrigated=SOFT_AND_CANE_FRUIT,ARABLE&businessesUsingWater=FIVE_OR_MORE&planning=Y&abstraction=Y'
+    })
+
+    expect(res.statusCode).toBe(StatusCodes.OK)
+    expect(waterManagementHelper.calculateScore).toHaveBeenCalledWith(
+      undefined,
+      {},
+      ['SOFT_AND_CANE_FRUIT', 'ARABLE'],
+      380712,
+      396269,
+      'FIVE_OR_MORE',
+      'Y',
+      'Y'
+    )
+  })
+
   it('should return 400 if query parameters are missing', async () => {
     const res = await server.inject({
       method: 'GET',

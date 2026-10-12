@@ -26,9 +26,23 @@ export const scoring = [
           grant: Joi.string().required().description('The grant identifier')
         }),
         query: Joi.object({
-          sectorsIrrigated: Joi.array()
-            .items(Joi.string().valid(...Object.keys(sectorsIrrigatedScores)))
-            .single()
+          sectorsIrrigated: Joi.any()
+            .custom((value, helpers) => {
+              const array = typeof value === 'string' ? value.split(',') : value
+
+              const { error, value: validated } = Joi.array()
+                .items(
+                  Joi.string().valid(...Object.keys(sectorsIrrigatedScores))
+                )
+                .single()
+                .validate(array)
+
+              if (error) {
+                return helpers.error('any.invalid')
+              }
+
+              return validated
+            })
             .required()
             .description(
               'The sectors being irrigated using the water from the project'
