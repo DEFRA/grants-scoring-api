@@ -31,11 +31,7 @@ export const scoring = [
               const array =
                 typeof value === 'string'
                   ? value.split(',')
-                  : Array.isArray(value)
-                    ? value.flatMap((v) =>
-                        typeof v === 'string' ? v.split(',') : v
-                      )
-                    : value
+                  : value
 
               const { error, value: validated } = Joi.array()
                 .items(
