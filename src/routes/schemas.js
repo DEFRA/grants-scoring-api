@@ -35,7 +35,9 @@ export const scoringQuerySchema = Joi.object({
       return validated
     })
     .required()
-    .description('The sectors being irrigated using the water from the project'),
+    .description(
+      'The sectors being irrigated using the water from the project'
+    ),
   easting,
   northing,
   businessesUsingWater: Joi.string()

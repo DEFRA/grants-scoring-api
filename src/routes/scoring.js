@@ -1,8 +1,6 @@
 import { StatusCodes } from 'http-status-codes'
 import Boom from '@hapi/boom'
-import {
-  calculateScore as calculateWaterManagementScore
-} from '#/common/helpers/scoring/water-management.js'
+import { calculateScore as calculateWaterManagementScore } from '#/common/helpers/scoring/water-management.js'
 import { scoringParamsSchema, scoringQuerySchema } from '#/routes/schemas.js'
 
 export const GRANTS_UI_SUBJECT = 'grants-ui'

@@ -52,7 +52,9 @@ describe('Validate Location Route', () => {
     expect(res.statusCode).toBe(StatusCodes.OK)
     expect(res.result).toEqual({ message: 'success' })
     expect(waterManagementHelper.pointToHexagon).toHaveBeenCalled()
-    expect(waterManagementHelper.getHexagonScoreFromDatastore).toHaveBeenCalledWith({}, 1, 2)
+    expect(
+      waterManagementHelper.getHexagonScoreFromDatastore
+    ).toHaveBeenCalledWith({}, 1, 2)
   })
 
   it('should return 400 if location does not exist in database', async () => {
