@@ -1,6 +1,9 @@
 import { StatusCodes } from 'http-status-codes'
 import Boom from '@hapi/boom'
-import { pointToHexagon, getHexagonScoreFromDatastore } from '#/common/helpers/scoring/water-management.js'
+import {
+  pointToHexagon,
+  getHexagonScoreFromDatastore
+} from '#/common/helpers/scoring/water-management.js'
 import { validateLocationQuerySchema } from '#/routes/schemas.js'
 
 export const validateLocation = {
