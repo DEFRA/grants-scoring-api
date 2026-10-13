@@ -4,18 +4,12 @@ import {
   pointToHexagon,
   getHexagonScoreFromDatastore
 } from '#/common/helpers/scoring/water-management.js'
-import { GRANTS_UI_SUBJECT } from '#/routes/scoring.js'
 import { validateLocationQuerySchema } from '#/routes/schemas.js'
 
 export const validateLocation = {
   method: 'GET',
   path: '/validate/location',
   options: {
-    plugins: {
-      'service-auth': {
-        allowedSubjects: [GRANTS_UI_SUBJECT]
-      }
-    },
     validate: {
       query: validateLocationQuerySchema
     }
