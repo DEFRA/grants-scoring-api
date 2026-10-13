@@ -1,15 +1,9 @@
 import { StatusCodes } from 'http-status-codes'
-import Joi from 'joi'
 import Boom from '@hapi/boom'
-import {
-  calculateScore as calculateWaterManagementScore,
-  sectorsIrrigatedScores,
-  collaborationScores
-} from '#/common/helpers/scoring/water-management.js'
+import { calculateScore as calculateWaterManagementScore } from '#/common/helpers/scoring/water-management.js'
+import { scoringParamsSchema, scoringQuerySchema } from '#/routes/schemas.js'
 
 export const GRANTS_UI_SUBJECT = 'grants-ui'
-
-const planningAbstractionValues = ['Y', 'N', 'NN']
 
 export const scoring = [
   {
@@ -22,52 +16,8 @@ export const scoring = [
         }
       },
       validate: {
-        params: Joi.object({
-          grant: Joi.string().required().description('The grant identifier')
-        }),
-        query: Joi.object({
-          sectorsIrrigated: Joi.any()
-            .custom((value, helpers) => {
-              const array = typeof value === 'string' ? value.split(',') : value
-
-              const { error, value: validated } = Joi.array()
-                .items(
-                  Joi.string().valid(...Object.keys(sectorsIrrigatedScores))
-                )
-                .single()
-                .validate(array)
-
-              if (error) {
-                return helpers.error('any.invalid')
-              }
-
-              return validated
-            })
-            .required()
-            .description(
-              'The sectors being irrigated using the water from the project'
-            ),
-          easting: Joi.number()
-            .required()
-            .description('The easting coordinate of the location'),
-          northing: Joi.number()
-            .required()
-            .description('The northing coordinate of the location'),
-          businessesUsingWater: Joi.string()
-            .valid(...Object.keys(collaborationScores))
-            .required()
-            .description(
-              'The number of businesses using the water from the project'
-            ),
-          planning: Joi.string()
-            .valid(...planningAbstractionValues)
-            .required()
-            .description('Whether planning permission is needed/held'),
-          abstraction: Joi.string()
-            .valid(...planningAbstractionValues)
-            .required()
-            .description('Whether an abstraction licence is needed/held')
-        })
+        params: scoringParamsSchema,
+        query: scoringQuerySchema
       }
     },
     handler: async (request, h) => {
