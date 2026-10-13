@@ -216,7 +216,7 @@ export const pointToHexagon = (logger, easting, northing) => {
   }
 }
 
-const getHexagonScoreFromDatastore = async (db, q, r) => {
+export const getHexagonScoreFromDatastore = async (db, q, r) => {
   const hex = await db.collection('hexagons').findOne({ q, r })
   return hex?.score ?? 0
 }
