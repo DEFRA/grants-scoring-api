@@ -155,11 +155,11 @@ export const calculateScarcityScore = async (logger, db, easting, northing) => {
  * @param logger
  * @param {number} easting
  * @param {number} northing
- * @returns {{q: number, r: number}} - coordinates used to identify a hexagon, q ≈ x and r ≈ y
+ * @returns {{q: number, r: number, eastingHexagonCentre: number, northingHexagonCentre: number}} - coordinates used to identify a hexagon, q ≈ x and r ≈ y
  */
 export const pointToHexagon = (logger, easting, northing) => {
   const hexagon = {
-    area: 8660.260000033304,
+    area: 8660.254037844386,
     qMultiplier: 2 / 3,
     rMultiplierEasting: -1 / 3,
     rMultiplierNorthing: Math.sqrt(3) / 3,
@@ -174,11 +174,15 @@ export const pointToHexagon = (logger, easting, northing) => {
       (hexagon.sizeDenominatorMultiplier * hexagon.sqrt3)
   )
 
+  const eastingOffset = -4.091055758530274
+  const northingOffset = 0.7348999999812804
+
   // Convert BNG coordinates to flat-top hexagon axial coordinates.
-  const q = (hexagon.qMultiplier * easting) / hexagonSideLength
+  const q =
+    (hexagon.qMultiplier * (easting - eastingOffset)) / hexagonSideLength
   const r =
-    (hexagon.rMultiplierEasting * easting +
-      hexagon.rMultiplierNorthing * northing) /
+    (hexagon.rMultiplierEasting * (easting - eastingOffset) +
+      hexagon.rMultiplierNorthing * (northing - northingOffset)) /
     hexagonSideLength
 
   // Convert axial coordinates to cube coordinates.
@@ -203,16 +207,23 @@ export const pointToHexagon = (logger, easting, northing) => {
     roundedZ = -roundedX - roundedY
   }
 
-  const centralEasting = (3 / 2) * hexagonSideLength * roundedX
-  const centralNorthing =
-    hexagonSideLength * hexagon.sqrt3 * (roundedZ + roundedX / 2)
+  const eastingHexagonCentre =
+    (hexagon.sizeDenominatorMultiplier / hexagon.sizeNumeratorMultiplier) *
+      hexagonSideLength *
+      roundedX +
+    eastingOffset
+  const northingHexagonCentre =
+    hexagonSideLength * hexagon.sqrt3 * (roundedZ + roundedX / 2) +
+    northingOffset
   logger.info(
-    `Selected hexagon central point: Easting ${centralEasting}, Northing ${centralNorthing}`
+    `Selected hexagon central point: Easting ${eastingHexagonCentre}, Northing ${northingHexagonCentre}`
   )
 
   return {
     q: roundedX,
-    r: roundedZ
+    r: roundedZ,
+    eastingHexagonCentre,
+    northingHexagonCentre
   }
 }
 
