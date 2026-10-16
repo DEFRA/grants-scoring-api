@@ -178,12 +178,36 @@ describe('water-management helper', () => {
       const logger = { info: vi.fn() }
       const points = [
         { name: 'CentralPoint', easting: 509132.24385, northing: 371550.7349 },
-        { name: 'EdgePoint-right-top', easting: 509161.11136, northing: 371600.7349 },
-        { name: 'EdgePoint-right-middle', easting: 509189.97888, northing: 371550.7349 },
-        { name: 'EdgePoint-right-bottom', easting: 509161.11136, northing: 371500.7349 },
-        { name: 'EdgePoint-left-top', easting: 509103.37634, northing: 371600.7349 },
-        { name: 'EdgePoint-left-middle', easting: 509074.50882, northing: 371550.7349 },
-        { name: 'EdgePoint-left-bottom', easting: 509103.37634, northing: 371500.7349 }
+        {
+          name: 'EdgePoint-right-top',
+          easting: 509161.11136,
+          northing: 371600.7349
+        },
+        {
+          name: 'EdgePoint-right-middle',
+          easting: 509189.97888,
+          northing: 371550.7349
+        },
+        {
+          name: 'EdgePoint-right-bottom',
+          easting: 509161.11136,
+          northing: 371500.7349
+        },
+        {
+          name: 'EdgePoint-left-top',
+          easting: 509103.37634,
+          northing: 371600.7349
+        },
+        {
+          name: 'EdgePoint-left-middle',
+          easting: 509074.50882,
+          northing: 371550.7349
+        },
+        {
+          name: 'EdgePoint-left-bottom',
+          easting: 509103.37634,
+          northing: 371500.7349
+        }
       ]
 
       const expectedScore = 8
