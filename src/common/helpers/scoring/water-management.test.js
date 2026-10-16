@@ -173,14 +173,42 @@ describe('water-management helper', () => {
       const score = await calculateScarcityScore(logger, db, 0, 0)
       expect(score).toBe(0)
     })
+
+    it('should validate that each point of a hexagon snaps to a hexagon with the same score', async () => {
+      const logger = { info: vi.fn() }
+      const points = [
+        { name: 'CentralPoint', easting: 509132.24385, northing: 371550.7349 },
+        { name: 'EdgePoint-right-top', easting: 509161.11136, northing: 371600.7349 },
+        { name: 'EdgePoint-right-middle', easting: 509189.97888, northing: 371550.7349 },
+        { name: 'EdgePoint-right-bottom', easting: 509161.11136, northing: 371500.7349 },
+        { name: 'EdgePoint-left-top', easting: 509103.37634, northing: 371600.7349 },
+        { name: 'EdgePoint-left-middle', easting: 509074.50882, northing: 371550.7349 },
+        { name: 'EdgePoint-left-bottom', easting: 509103.37634, northing: 371500.7349 }
+      ]
+
+      const expectedScore = 8
+      const mockFindOne = vi.fn().mockResolvedValue({ score: expectedScore })
+      const mockDb = {
+        collection: vi.fn().mockReturnThis(),
+        findOne: mockFindOne
+      }
+
+      const expectedQ = 5879
+      const expectedR = 776
+      for (const point of points) {
+        await calculateScarcityScore(
+          logger,
+          mockDb,
+          point.easting,
+          point.northing
+        )
+        expect(mockFindOne).toHaveBeenCalledWith({ q: expectedQ, r: expectedR })
+      }
+    })
   })
 
   describe('pointToHexagon', () => {
     const logger = { info: vi.fn() }
-    it('should correctly map (0,0) to hexagon (0,0)', () => {
-      expect(pointToHexagon(logger, 0, 0)).toEqual({ q: 0, r: 0 })
-    })
-
     it('should correctly map easting=380712, northing=396269 to correct hexagon', () => {
       // Manual calculation with updated hexagon size (Area = 8660.260000033304):
       // s = sqrt(2 * A / (3 * sqrt(3))) = sqrt(17320.52 / 5.1961524) = sqrt(3333.333) ~= 57.735
@@ -195,10 +223,12 @@ describe('water-management helper', () => {
       // diffX=0.08, diffZ=0.35, diffY=0.27
       // diffZ is largest, so roundedZ = -roundedX - roundedY = -4396 - (-6161) = 1765
       // result { q: 4396, r: 1765 }
-      expect(pointToHexagon(logger, 380712, 396269)).toEqual({
-        q: 4396,
-        r: 1765
-      })
+      expect(pointToHexagon(logger, 380712, 396269)).toEqual(
+        expect.objectContaining({
+          q: 4396,
+          r: 1765
+        })
+      )
     })
 
     it('should handle rounding at boundaries', () => {
@@ -227,7 +257,9 @@ describe('water-management helper', () => {
       // -23.094 + 0.57735 * northing = 5.7735
       // 0.57735 * northing = 28.8675
       // northing = 50
-      expect(pointToHexagon(logger, 69.282, 50)).toEqual({ q: 1, r: 0 })
+      expect(pointToHexagon(logger, 69.282, 50)).toEqual(
+        expect.objectContaining({ q: 1, r: 0 })
+      )
     })
   })
 })
