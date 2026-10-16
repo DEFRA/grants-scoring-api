@@ -208,7 +208,10 @@ export const pointToHexagon = (logger, easting, northing) => {
   }
 
   const eastingHexagonCentre =
-    (3 / 2) * hexagonSideLength * roundedX + eastingOffset
+    (hexagon.sizeDenominatorMultiplier / hexagon.sizeNumeratorMultiplier) *
+      hexagonSideLength *
+      roundedX +
+    eastingOffset
   const northingHexagonCentre =
     hexagonSideLength * hexagon.sqrt3 * (roundedZ + roundedX / 2) +
     northingOffset
