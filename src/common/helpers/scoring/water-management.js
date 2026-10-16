@@ -159,7 +159,7 @@ export const calculateScarcityScore = async (logger, db, easting, northing) => {
  */
 export const pointToHexagon = (logger, easting, northing) => {
   const hexagon = {
-    area: 8660.260000033304,
+    area: 8660.254037844386,
     qMultiplier: 2 / 3,
     rMultiplierEasting: -1 / 3,
     rMultiplierNorthing: Math.sqrt(3) / 3,
@@ -174,8 +174,8 @@ export const pointToHexagon = (logger, easting, northing) => {
       (hexagon.sizeDenominatorMultiplier * hexagon.sqrt3)
   )
 
-  const eastingOffset = -4.266293384484015
-  const northingOffset = 0.6069852177170105
+  const eastingOffset = -4.091055758530274
+  const northingOffset = 0.7348999999812804
 
   // Convert BNG coordinates to flat-top hexagon axial coordinates.
   const q =
