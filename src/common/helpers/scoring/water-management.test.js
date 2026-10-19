@@ -45,7 +45,8 @@ describe('water-management helper', () => {
       })
 
       expect(trackEvent).toHaveBeenCalledTimes(5)
-      expect(trackEvent).toHaveBeenNthCalledWith(1,
+      expect(trackEvent).toHaveBeenNthCalledWith(
+        1,
         logger,
         'scoring.outcome',
         'sector',
