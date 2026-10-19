@@ -35,9 +35,11 @@ export const scoring = [
           planning,
           abstraction
         )
+        await request.metrics.counter(`scoring.success`)
         return h.response({ ...scores }).code(StatusCodes.OK)
       }
 
+      await request.metrics.counter(`scoring.fail.unsupported_grant`)
       throw Boom.notFound('Unsupported grant')
     }
   }

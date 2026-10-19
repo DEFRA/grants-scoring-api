@@ -1,5 +1,13 @@
 import { StatusCodes } from 'http-status-codes'
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+  vi
+} from 'vitest'
 import { scoring } from './scoring.js'
 import Hapi from '@hapi/hapi'
 import { failAction } from '#/common/helpers/fail-action.js'
@@ -18,6 +26,9 @@ vi.mock(
 
 describe('Scoring Route', () => {
   let server
+  const mockMetrics = {
+    counter: vi.fn().mockResolvedValue()
+  }
 
   beforeAll(async () => {
     server = Hapi.server({
@@ -31,8 +42,13 @@ describe('Scoring Route', () => {
       }
     })
     server.decorate('server', 'db', {}) // Add mock db
+    server.decorate('request', 'metrics', mockMetrics)
     server.route(scoring)
     await server.initialize()
+  })
+
+  beforeEach(() => {
+    vi.clearAllMocks()
   })
 
   afterAll(async () => {
@@ -71,6 +87,7 @@ describe('Scoring Route', () => {
       'Y', // planning
       'Y' // abstraction
     )
+    expect(mockMetrics.counter).toHaveBeenCalledWith('scoring.success')
   })
 
   it('should return 400 if abstraction is invalid', async () => {
@@ -80,6 +97,7 @@ describe('Scoring Route', () => {
     })
 
     expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
+    expect(mockMetrics.counter).not.toHaveBeenCalled()
   })
 
   it('should return 400 if sectorsIrrigated contains invalid values', async () => {
@@ -89,6 +107,7 @@ describe('Scoring Route', () => {
     })
 
     expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
+    expect(mockMetrics.counter).not.toHaveBeenCalled()
   })
 
   it('should return 200 if only one sectorsIrrigated query param is present', async () => {
@@ -116,6 +135,7 @@ describe('Scoring Route', () => {
       'Y',
       'NN'
     )
+    expect(mockMetrics.counter).toHaveBeenCalledWith('scoring.success')
   })
 
   it('should support comma-separated sectorsIrrigated values', async () => {
@@ -139,6 +159,7 @@ describe('Scoring Route', () => {
       'Y',
       'Y'
     )
+    expect(mockMetrics.counter).toHaveBeenCalledWith('scoring.success')
   })
 
   it('should return 400 if query parameters are missing', async () => {
@@ -148,6 +169,7 @@ describe('Scoring Route', () => {
     })
 
     expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
+    expect(mockMetrics.counter).not.toHaveBeenCalled()
   })
 
   it('should return 404 if grant is not water-management', async () => {
@@ -158,6 +180,9 @@ describe('Scoring Route', () => {
 
     expect(res.statusCode).toBe(StatusCodes.NOT_FOUND)
     expect(res.result.message).toBe('Unsupported grant')
+    expect(mockMetrics.counter).toHaveBeenCalledWith(
+      'scoring.fail.unsupported_grant'
+    )
   })
 
   it('should return 404 if grant path variable is missing', async () => {
@@ -167,5 +192,6 @@ describe('Scoring Route', () => {
     })
 
     expect(res.statusCode).toBe(StatusCodes.NOT_FOUND)
+    expect(mockMetrics.counter).not.toHaveBeenCalled()
   })
 })

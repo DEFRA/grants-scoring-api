@@ -21,9 +21,11 @@ export const validateLocation = {
 
     const score = await getHexagonScoreFromDatastore(request.server.db, q, r)
     if (!score) {
+      await request.metrics.counter(`validation.fail.unsupported_location`)
       throw Boom.badRequest('Location not found')
     }
 
+    await request.metrics.counter(`validation.success`)
     return h.response({ message: 'success' }).code(StatusCodes.OK)
   }
 }
