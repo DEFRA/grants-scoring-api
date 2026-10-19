@@ -1,3 +1,5 @@
+import { trackEvent } from '../logging/logger.js'
+
 export const calculateScore = async (
   logger,
   db,
@@ -24,19 +26,19 @@ export const calculateScore = async (
   const totalScore =
     sectorScore + scarcityScore + collaborationScore + planningAbstractionScore
 
-  logger.trackEvent(`scoring.outcome`, `sector`, {
+  trackEvent(logger, `scoring.outcome`, `sector`, {
     reference: `score: ${sectorScore}, value: ${sectorsIrrigated}`
   })
-  logger.trackEvent(`scoring.outcome`, `collaboration`, {
+  trackEvent(logger, `scoring.outcome`, `collaboration`, {
     reference: `score: ${collaborationScore}, value: ${businessesUsingWater}`
   })
-  logger.trackEvent(`scoring.outcome`, `planning-abstraction`, {
+  trackEvent(logger, `scoring.outcome`, `planning-abstraction`, {
     reference: `score: ${planningAbstractionScore}, planning: ${planning}, abstraction: ${abstraction}`
   })
-  logger.trackEvent(`scoring.outcome`, `scarcity`, {
+  trackEvent(logger, `scoring.outcome`, `scarcity`, {
     reference: `score: ${scarcityScore}, value: ${JSON.stringify({ easting, northing })}`
   })
-  logger.trackEvent(`scoring.outcome`, `total`, {
+  trackEvent(logger, `scoring.outcome`, `total`, {
     reference: `score: ${totalScore}`
   })
 
