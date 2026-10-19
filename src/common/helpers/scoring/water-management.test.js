@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import {
   calculateScore,
   calculateScarcityScore,
@@ -10,7 +10,11 @@ import {
 
 describe('water-management helper', () => {
   describe('calculateScore', () => {
-    const logger = { info: vi.fn() }
+    const logger = { info: vi.fn(), trackEvent: vi.fn() }
+
+    beforeEach(() => {
+      vi.clearAllMocks()
+    })
 
     it('should calculate the total score correctly with all positive factors', async () => {
       const db = {
@@ -36,6 +40,48 @@ describe('water-management helper', () => {
         collaborationScore: 10,
         planningAbstractionScore: 5
       })
+
+      expect(logger.trackEvent).toHaveBeenCalledTimes(5)
+      expect(logger.trackEvent).toHaveBeenNthCalledWith(
+        1,
+        'scoring.outcome',
+        'sector',
+        {
+          reference: 'score: 25, value: SOFT_AND_CANE_FRUIT'
+        }
+      )
+      expect(logger.trackEvent).toHaveBeenNthCalledWith(
+        2,
+        'scoring.outcome',
+        'collaboration',
+        {
+          reference: 'score: 10, value: FIVE_OR_MORE'
+        }
+      )
+      expect(logger.trackEvent).toHaveBeenNthCalledWith(
+        3,
+        'scoring.outcome',
+        'planning-abstraction',
+        {
+          reference: 'score: 5, planning: Y, abstraction: Y'
+        }
+      )
+      expect(logger.trackEvent).toHaveBeenNthCalledWith(
+        4,
+        'scoring.outcome',
+        'scarcity',
+        {
+          reference: 'score: 60, value: {"easting":380712,"northing":396269}'
+        }
+      )
+      expect(logger.trackEvent).toHaveBeenNthCalledWith(
+        5,
+        'scoring.outcome',
+        'total',
+        {
+          reference: 'score: 100'
+        }
+      )
     })
   })
 

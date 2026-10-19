@@ -1,5 +1,13 @@
 import { StatusCodes } from 'http-status-codes'
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+  vi
+} from 'vitest'
 import { validateLocation } from './validate-location.js'
 import Hapi from '@hapi/hapi'
 import { failAction } from '#/common/helpers/fail-action.js'
@@ -19,6 +27,9 @@ vi.mock(
 
 describe('Validate Location Route', () => {
   let server
+  const mockMetrics = {
+    counter: vi.fn().mockResolvedValue()
+  }
 
   beforeAll(async () => {
     server = Hapi.server({
@@ -32,8 +43,13 @@ describe('Validate Location Route', () => {
       }
     })
     server.decorate('server', 'db', {}) // Add mock db
+    server.decorate('request', 'metrics', mockMetrics)
     server.route(validateLocation)
     await server.initialize()
+  })
+
+  beforeEach(() => {
+    vi.clearAllMocks()
   })
 
   afterAll(async () => {
@@ -55,6 +71,7 @@ describe('Validate Location Route', () => {
     expect(
       waterManagementHelper.getHexagonScoreFromDatastore
     ).toHaveBeenCalledWith({}, 1, 2)
+    expect(mockMetrics.counter).toHaveBeenCalledWith('validation.success')
   })
 
   it('should return 400 if location does not exist in database', async () => {
@@ -68,6 +85,9 @@ describe('Validate Location Route', () => {
 
     expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
     expect(res.result.message).toBe('Location not found')
+    expect(mockMetrics.counter).toHaveBeenCalledWith(
+      'validation.fail.unsupported_location'
+    )
   })
 
   it('should return 400 if easting is missing', async () => {
@@ -77,6 +97,7 @@ describe('Validate Location Route', () => {
     })
 
     expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
+    expect(mockMetrics.counter).not.toHaveBeenCalled()
   })
 
   it('should return 400 if northing is missing', async () => {
@@ -86,5 +107,6 @@ describe('Validate Location Route', () => {
     })
 
     expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
+    expect(mockMetrics.counter).not.toHaveBeenCalled()
   })
 })
