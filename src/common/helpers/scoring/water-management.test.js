@@ -7,6 +7,9 @@ import {
   calculateCollaborationScore,
   calculatePlanningAbstractionScore
 } from './water-management.js'
+import { trackEvent } from '../logging/logger.js'
+
+vi.mock('../logging/logger.js')
 
 describe('water-management helper', () => {
   describe('calculateScore', () => {
@@ -41,41 +44,45 @@ describe('water-management helper', () => {
         planningAbstractionScore: 5
       })
 
-      expect(logger.trackEvent).toHaveBeenCalledTimes(5)
-      expect(logger.trackEvent).toHaveBeenNthCalledWith(
-        1,
+      expect(trackEvent).toHaveBeenCalledTimes(5)
+      expect(trackEvent).toHaveBeenNthCalledWith(1,
+        logger,
         'scoring.outcome',
         'sector',
         {
           reference: 'score: 25, value: SOFT_AND_CANE_FRUIT'
         }
       )
-      expect(logger.trackEvent).toHaveBeenNthCalledWith(
+      expect(trackEvent).toHaveBeenNthCalledWith(
         2,
+        logger,
         'scoring.outcome',
         'collaboration',
         {
           reference: 'score: 10, value: FIVE_OR_MORE'
         }
       )
-      expect(logger.trackEvent).toHaveBeenNthCalledWith(
+      expect(trackEvent).toHaveBeenNthCalledWith(
         3,
+        logger,
         'scoring.outcome',
         'planning-abstraction',
         {
           reference: 'score: 5, planning: Y, abstraction: Y'
         }
       )
-      expect(logger.trackEvent).toHaveBeenNthCalledWith(
+      expect(trackEvent).toHaveBeenNthCalledWith(
         4,
+        logger,
         'scoring.outcome',
         'scarcity',
         {
           reference: 'score: 60, value: {"easting":380712,"northing":396269}'
         }
       )
-      expect(logger.trackEvent).toHaveBeenNthCalledWith(
+      expect(trackEvent).toHaveBeenNthCalledWith(
         5,
+        logger,
         'scoring.outcome',
         'total',
         {
