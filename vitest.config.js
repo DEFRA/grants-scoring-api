@@ -12,13 +12,17 @@ export default defineConfig({
       reportsDirectory: './coverage',
       reporter: ['text', 'lcov'],
       include: ['src/**/*.js', 'test/**/*.js'],
-      exclude: [...configDefaults.exclude, 'coverage', 'test/integration/hooks/**']
+      exclude: [
+        ...configDefaults.exclude,
+        'coverage',
+        'test/integration/hooks/**'
+      ]
     },
     setupFiles: ['.vite/mongo-memory-server.js', '.vite/setup-files.js'],
     globalSetup: [
-        `${hooksPath}globalSetup.js`,
-        `${hooksPath}globalTeardown.js`
-      ],
+      `${hooksPath}globalSetup.js`,
+      `${hooksPath}globalTeardown.js`
+    ],
     hookTimeout: 120000
   }
 })
