@@ -14,6 +14,9 @@ vi.mock('../logging/logger.js')
 describe('water-management helper', () => {
   describe('calculateScore', () => {
     const logger = { info: vi.fn(), trackEvent: vi.fn() }
+    const mockMetrics = {
+      counter: vi.fn().mockResolvedValue()
+    }
 
     beforeEach(() => {
       vi.clearAllMocks()
@@ -26,8 +29,7 @@ describe('water-management helper', () => {
       }
 
       const result = await calculateScore(
-        logger,
-        db,
+        {logger, db, metrics: mockMetrics},
         ['SOFT_AND_CANE_FRUIT'],
         380712,
         396269,
@@ -51,8 +53,7 @@ describe('water-management helper', () => {
         'scoring.outcome',
         'sector',
         {
-          outcome: 25,
-          reason: 'SOFT_AND_CANE_FRUIT'
+          outcome: 25
         }
       )
       expect(trackEvent).toHaveBeenNthCalledWith(
