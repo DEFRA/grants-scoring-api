@@ -67,9 +67,12 @@ const recordMetrics = async (metrics, logger, inputs, scores) => {
     planningAbstractionScore
   } = scores
 
-  for (const sector of sectorsIrrigated) {
-    await metrics.counter('scoring.sector.' + sector)
-  }
+  await Promise.all(
+    sectorsIrrigated.map((sector) =>
+      metrics.counter('scoring.sector.' + sector)
+    )
+  )
+
   trackEvent(logger, `scoring.outcome`, `sector`, {
     outcome: sectorScore
   })
