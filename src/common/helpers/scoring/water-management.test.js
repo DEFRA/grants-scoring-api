@@ -29,7 +29,7 @@ describe('water-management helper', () => {
       }
 
       const result = await calculateScore(
-        {logger, db, metrics: mockMetrics},
+        { logger, db, metrics: mockMetrics },
         ['SOFT_AND_CANE_FRUIT'],
         380712,
         396269,

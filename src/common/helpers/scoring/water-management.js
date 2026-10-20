@@ -33,13 +33,32 @@ export const calculateScore = async (
     collaborationScore,
     planningAbstractionScore
   }
-  await recordMetrics(metrics, logger, {sectorsIrrigated, businessesUsingWater, planning, abstraction, easting, northing}, scores)
+  await recordMetrics(
+    metrics,
+    logger,
+    {
+      sectorsIrrigated,
+      businessesUsingWater,
+      planning,
+      abstraction,
+      easting,
+      northing
+    },
+    scores
+  )
 
   return scores
 }
 
 const recordMetrics = async (metrics, logger, inputs, scores) => {
-  const { sectorsIrrigated, businessesUsingWater, planning, abstraction, easting, northing } = inputs
+  const {
+    sectorsIrrigated,
+    businessesUsingWater,
+    planning,
+    abstraction,
+    easting,
+    northing
+  } = inputs
   const {
     totalScore,
     sectorScore,
@@ -48,7 +67,7 @@ const recordMetrics = async (metrics, logger, inputs, scores) => {
     planningAbstractionScore
   } = scores
 
-  for(const sector of sectorsIrrigated) {
+  for (const sector of sectorsIrrigated) {
     await metrics.counter('scoring.sector.' + sector)
   }
   trackEvent(logger, `scoring.outcome`, `sector`, {
