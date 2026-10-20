@@ -78,8 +78,7 @@ describe('Scoring Route', () => {
       planningAbstractionScore: 5
     })
     expect(waterManagementHelper.calculateScore).toHaveBeenCalledWith(
-      undefined, // logger
-      {}, // db
+      server,
       ['SOFT_AND_CANE_FRUIT', 'ARABLE'], // sectorsIrrigated
       380712, // easting (parsed as number by Joi)
       396269, // northing (parsed as number by Joi)
@@ -126,8 +125,7 @@ describe('Scoring Route', () => {
 
     expect(res.statusCode).toBe(StatusCodes.OK)
     expect(waterManagementHelper.calculateScore).toHaveBeenCalledWith(
-      undefined,
-      {},
+      server,
       ['SOFT_AND_CANE_FRUIT'],
       380712,
       396269,
@@ -150,8 +148,7 @@ describe('Scoring Route', () => {
 
     expect(res.statusCode).toBe(StatusCodes.OK)
     expect(waterManagementHelper.calculateScore).toHaveBeenCalledWith(
-      undefined,
-      {},
+      server,
       ['SOFT_AND_CANE_FRUIT', 'ARABLE'],
       380712,
       396269,
