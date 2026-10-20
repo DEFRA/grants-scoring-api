@@ -24,7 +24,7 @@ async function initializeMongo() {
 
   if (type() === 'Linux') {
     console.log('mongo: using tmpfs mount')
-    mongoContainer.withTmpFs({ '/data': 'mongodb-data' })
+    mongoContainer.withTmpFs({ '/data/db': '' })
   }
 
   const mongoStarted = await startContainer(mongoContainer, 'mongodb')

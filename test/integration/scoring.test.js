@@ -56,11 +56,11 @@ describe('#scoringController', () => {
       })
 
       expect(result).toEqual({
-        collaborationScore: collaborationScore,
-        planningAbstractionScore: planningAbstractionScore,
-        scarcityScore: scarcityScore,
-        sectorScore: sectorScore,
-        totalScore: totalScore
+        collaborationScore,
+        planningAbstractionScore,
+        scarcityScore,
+        sectorScore,
+        totalScore
       })
       expect(statusCode).toBe(StatusCodes.OK)
     }
@@ -150,11 +150,11 @@ describe('#scoringController', () => {
       })
 
       expect(result).toEqual({
-        collaborationScore: collaborationScore,
-        planningAbstractionScore: planningAbstractionScore,
-        scarcityScore: scarcityScore,
-        sectorScore: sectorScore,
-        totalScore: totalScore
+        collaborationScore,
+        planningAbstractionScore,
+        scarcityScore,
+        sectorScore,
+        totalScore
       })
       expect(statusCode).toBe(StatusCodes.OK)
     }
@@ -247,11 +247,11 @@ describe('#scoringController', () => {
       })
 
       expect(result).toEqual({
-        collaborationScore: collaborationScore,
-        planningAbstractionScore: planningAbstractionScore,
-        scarcityScore: scarcityScore,
-        sectorScore: sectorScore,
-        totalScore: totalScore
+        collaborationScore,
+        planningAbstractionScore,
+        scarcityScore,
+        sectorScore,
+        totalScore
       })
       expect(statusCode).toBe(StatusCodes.OK)
     }
