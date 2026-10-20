@@ -51,7 +51,8 @@ describe('water-management helper', () => {
         'scoring.outcome',
         'sector',
         {
-          reference: 'score: 25, value: SOFT_AND_CANE_FRUIT'
+          outcome: 25,
+          reason: 'SOFT_AND_CANE_FRUIT'
         }
       )
       expect(trackEvent).toHaveBeenNthCalledWith(
@@ -60,7 +61,8 @@ describe('water-management helper', () => {
         'scoring.outcome',
         'collaboration',
         {
-          reference: 'score: 10, value: FIVE_OR_MORE'
+          outcome: 10,
+          reason: 'FIVE_OR_MORE'
         }
       )
       expect(trackEvent).toHaveBeenNthCalledWith(
@@ -69,7 +71,9 @@ describe('water-management helper', () => {
         'scoring.outcome',
         'planning-abstraction',
         {
-          reference: 'score: 5, planning: Y, abstraction: Y'
+          outcome: 5,
+          reason: 'Y',
+          kind: 'Y'
         }
       )
       expect(trackEvent).toHaveBeenNthCalledWith(
@@ -78,7 +82,8 @@ describe('water-management helper', () => {
         'scoring.outcome',
         'scarcity',
         {
-          reference: 'score: 60, value: {"easting":380712,"northing":396269}'
+          outcome: 60,
+          reference: '{"easting":380712,"northing":396269}'
         }
       )
       expect(trackEvent).toHaveBeenNthCalledWith(
@@ -87,7 +92,7 @@ describe('water-management helper', () => {
         'scoring.outcome',
         'total',
         {
-          reference: 'score: 100'
+          outcome: 100
         }
       )
     })
