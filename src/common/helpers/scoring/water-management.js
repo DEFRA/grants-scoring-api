@@ -27,19 +27,24 @@ export const calculateScore = async (
     sectorScore + scarcityScore + collaborationScore + planningAbstractionScore
 
   trackEvent(logger, `scoring.outcome`, `sector`, {
-    reference: `score: ${sectorScore}, value: ${sectorsIrrigated}`
+    outcome: sectorScore,
+    reason: sectorsIrrigated.join(',')
   })
   trackEvent(logger, `scoring.outcome`, `collaboration`, {
-    reference: `score: ${collaborationScore}, value: ${businessesUsingWater}`
+    outcome: collaborationScore,
+    reason: businessesUsingWater
   })
   trackEvent(logger, `scoring.outcome`, `planning-abstraction`, {
-    reference: `score: ${planningAbstractionScore}, planning: ${planning}, abstraction: ${abstraction}`
+    outcome: planningAbstractionScore,
+    reason: planning,
+    kind: abstraction
   })
   trackEvent(logger, `scoring.outcome`, `scarcity`, {
-    reference: `score: ${scarcityScore}, value: ${JSON.stringify({ easting, northing })}`
+    outcome: scarcityScore,
+    reference: JSON.stringify({ easting, northing })
   })
   trackEvent(logger, `scoring.outcome`, `total`, {
-    reference: `score: ${totalScore}`
+    outcome: totalScore
   })
 
   return {
