@@ -1,8 +1,7 @@
 import { trackEvent } from '../logging/logger.js'
 
 export const calculateScore = async (
-  logger,
-  db,
+  server,
   sectorsIrrigated,
   easting,
   northing,
@@ -10,6 +9,7 @@ export const calculateScore = async (
   planning,
   abstraction
 ) => {
+  const { logger, db, metrics } = server
   const sectorScore = calculateSectorScore(sectorsIrrigated)
   const collaborationScore = calculateCollaborationScore(businessesUsingWater)
   const planningAbstractionScore = calculatePlanningAbstractionScore(
@@ -26,9 +26,55 @@ export const calculateScore = async (
   const totalScore =
     sectorScore + scarcityScore + collaborationScore + planningAbstractionScore
 
+  const scores = {
+    totalScore,
+    sectorScore,
+    scarcityScore,
+    collaborationScore,
+    planningAbstractionScore
+  }
+  await recordMetrics(
+    metrics,
+    logger,
+    {
+      sectorsIrrigated,
+      businessesUsingWater,
+      planning,
+      abstraction,
+      easting,
+      northing
+    },
+    scores
+  )
+
+  return scores
+}
+
+const recordMetrics = async (metrics, logger, inputs, scores) => {
+  const {
+    sectorsIrrigated,
+    businessesUsingWater,
+    planning,
+    abstraction,
+    easting,
+    northing
+  } = inputs
+  const {
+    totalScore,
+    sectorScore,
+    scarcityScore,
+    collaborationScore,
+    planningAbstractionScore
+  } = scores
+
+  await Promise.all(
+    sectorsIrrigated.map((sector) =>
+      metrics.counter('scoring.sector.' + sector)
+    )
+  )
+
   trackEvent(logger, `scoring.outcome`, `sector`, {
-    outcome: sectorScore,
-    reason: sectorsIrrigated.join(',')
+    outcome: sectorScore
   })
   trackEvent(logger, `scoring.outcome`, `collaboration`, {
     outcome: collaborationScore,
@@ -46,14 +92,6 @@ export const calculateScore = async (
   trackEvent(logger, `scoring.outcome`, `total`, {
     outcome: totalScore
   })
-
-  return {
-    totalScore,
-    sectorScore,
-    scarcityScore,
-    collaborationScore,
-    planningAbstractionScore
-  }
 }
 
 export const sectorsIrrigatedScores = {
