@@ -230,9 +230,8 @@ export const pointToHexagon = (logger, easting, northing) => {
   }
   const calculatedCentreDecimalPlaces = 5
 
-  // Regular flat-top hexagon side length from area: A = (3 * sqrt(3) / 2) * s^2
+  // Regular flat-top hexagon side length
   const hexagonSideLength = 57.73502691809228
-
   const eastingOffset = -4.091027196787763
   const northingOffset = 0.7349056007224135
 
