@@ -68,6 +68,16 @@ npm run dev
 
 ### Testing
 
+The tests are run using vitest and configured to run unit, integration and code coverage tests.
+
+Integration tests live in the `test/integration` directory and are configured in the `vitest.config.js` file
+
+Integration tests require light throwaway containers (`testcontainers`) to be spun up (`test/integration/hooks/globalSetup.js`) and destroyed (`test/integration/hooks/globalTeardown`) before starting test execution
+
+The following containers are provisioned:
+
+    mongodb
+
 To test the application run:
 
 ```bash
