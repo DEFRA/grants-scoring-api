@@ -232,6 +232,7 @@ export const pointToHexagon = (logger, easting, northing) => {
 
   // Regular flat-top hexagon side length
   const hexagonSideLength = 57.73502691809228
+
   const eastingOffset = -4.091027196787763
   const northingOffset = 0.7349056007224135
 
