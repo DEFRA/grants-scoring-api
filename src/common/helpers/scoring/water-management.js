@@ -228,15 +228,13 @@ export const pointToHexagon = (logger, easting, northing) => {
     sizeDenominatorMultiplier: 3,
     sqrt3: Math.sqrt(3)
   }
+  const calculatedCentreDecimalPlaces = 5
 
-  // Regular flat-top hexagon side length from area: A = (3 * sqrt(3) / 2) * s^2
-  const hexagonSideLength = Math.sqrt(
-    (hexagon.sizeNumeratorMultiplier * hexagon.area) /
-      (hexagon.sizeDenominatorMultiplier * hexagon.sqrt3)
-  )
+  // Regular flat-top hexagon side length
+  const hexagonSideLength = 57.73502691809228
 
-  const eastingOffset = -4.091055758530274
-  const northingOffset = 0.7348999999812804
+  const eastingOffset = -4.091027196787763
+  const northingOffset = 0.7349056007224135
 
   // Convert BNG coordinates to flat-top hexagon axial coordinates.
   const q =
@@ -268,14 +266,20 @@ export const pointToHexagon = (logger, easting, northing) => {
     roundedZ = -roundedX - roundedY
   }
 
-  const eastingHexagonCentre =
-    (hexagon.sizeDenominatorMultiplier / hexagon.sizeNumeratorMultiplier) *
-      hexagonSideLength *
-      roundedX +
-    eastingOffset
-  const northingHexagonCentre =
-    hexagonSideLength * hexagon.sqrt3 * (roundedZ + roundedX / 2) +
-    northingOffset
+  const eastingHexagonCentre = Number(
+    (
+      (hexagon.sizeDenominatorMultiplier / hexagon.sizeNumeratorMultiplier) *
+        hexagonSideLength *
+        roundedX +
+      eastingOffset
+    ).toFixed(calculatedCentreDecimalPlaces)
+  )
+  const northingHexagonCentre = Number(
+    (
+      hexagonSideLength * hexagon.sqrt3 * (roundedZ + roundedX / 2) +
+      northingOffset
+    ).toFixed(calculatedCentreDecimalPlaces)
+  )
   logger.info(
     `Selected hexagon central point: Easting ${eastingHexagonCentre}, Northing ${northingHexagonCentre}`
   )
