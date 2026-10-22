@@ -1,7 +1,5 @@
 # grants-scoring-api
 
-Core delivery platform Node.js Backend Template.
-
 - [Requirements](#requirements)
   - [Node.js](#nodejs)
 - [Local development](#local-development)
@@ -10,16 +8,14 @@ Core delivery platform Node.js Backend Template.
   - [Testing](#testing)
   - [Production](#production)
   - [Npm scripts](#npm-scripts)
-  - [Update dependencies](#update-dependencies)
-  - [Formatting](#formatting)
-    - [Windows prettier issue](#windows-prettier-issue)
+- [API Security](#api-security)
 - [API endpoints](#api-endpoints)
+  - [Scoring Endpoint Details](#scoring-endpoint-details)
+  - [Validate Location Endpoint Details](#validate-location-endpoint-details)
+- [Location Data](#location-data)
+  - [Data Load](#data-load)
 - [Development helpers](#development-helpers)
-  - [MongoDB Locks](#mongodb-locks)
-  - [Proxy](#proxy)
 - [Docker](#docker)
-  - [Development image](#development-image)
-  - [Production image](#production-image)
   - [Docker Compose](#docker-compose)
   - [Dependabot](#dependabot)
   - [SonarCloud](#sonarcloud)
@@ -48,14 +44,6 @@ Install application dependencies:
 
 ```bash
 npm install
-```
-
-### Git hooks
-
-Install git hooks (optional)
-
-```bash
-npm run git:hooks
 ```
 
 ### Development
@@ -89,7 +77,7 @@ npm run test
 To mimic the application running in `production` mode locally run:
 
 ```bash
-npm start
+docker compose up
 ```
 
 ### Npm scripts
@@ -101,37 +89,27 @@ To view them in your command line run:
 npm run
 ```
 
-### Update dependencies
+## API Security
 
-To update dependencies use [npm-check-updates](https://github.com/raineorshine/npm-check-updates):
-
-> The following script is a good start. Check out all the options on
-> the [npm-check-updates](https://github.com/raineorshine/npm-check-updates)
-
-```bash
-ncu --interactive --format group
-```
-
-### Formatting
-
-#### Windows prettier issue
-
-If you are having issues with formatting of line breaks on Windows update your global git config by running:
-
-```bash
-git config --global core.autocrlf false
-```
+On all environments, except local, the API is secured using service to service authentication.
+A JWT bearer token must be provided in the `Authorization` header.
+Only tokens provided by the correct issuer are accepted.
+The audience must match this service.
+The subjects are restricted based on an externally configured list.
 
 ## API endpoints
 
-| Endpoint                | Description |
-| :---------------------- | :---------- |
-| `GET: /health`          | Health      |
-| `GET: /scoring/{grant}` | Scoring     |
+The API specification is documented in [openapi.yaml](docs/openapi.yaml).
+
+| Endpoint                  | Description               |
+| :------------------------ | :------------------------ |
+| `GET: /scoring/{grant}`   | Scoring for a given grant |
+| `GET: /validate/location` | Validate Location         |
 
 ### Scoring Endpoint Details
 
-The scoring endpoint evaluates a grant application based on the grant type and county.
+The scoring endpoint evaluates a grant application based on the project location, the sector, whether planning permission and water abstraction licence
+have already been granted, and how many businesses the project will assist.
 
 #### Path Parameters
 
@@ -139,74 +117,32 @@ The scoring endpoint evaluates a grant application based on the grant type and c
 
 #### Query Parameters
 
-- `county` (optional): The county for scoring.
+- Please see [openapi.yaml](docs/openapi.yaml) for details.
 
-#### Scoring Logic
+### Validate Location Endpoint Details
 
-For the `water-management` grant, the following scoring applies:
+The validation endpoint accepts an easting and northing value, and indicates whether this location is in England and can therefore be used to provide a valid score.
 
-| County      | Score | Band      |
-| :---------- | :---- | :-------- |
-| `BERKSHIRE` | 75    | `Strong`  |
-| `BRISTOL`   | 25    | `Weak`    |
-| Other/None  | 50    | `Average` |
+## Location Data
+
+The location data is stored in the attached MongoDB database as a collection named `hexagons`. These are simple records of hexagonal cells covering all of England.
+These are of the form
+
+```
+  { q: 123, r 456: score: 5 }
+```
+
+Where q and r represent the midpoint of a hexagon, and the score is the associated water scarcity value for that hexagon.
+Incoming easting and northing values are converted to hexagon coordinates, to snap to the centre of the nearest hexagon.
+This data is non-sensitive and is publicly available and will be published as part of the user guidance as a magic map.
+
+### Data Load
+
+The data is loaded from JSON files, which must be named `*.json` and placed in the `data` directory.
+There are over 15 million hexagon entries, and these are loaded into the database on startup in batches, packaged across
+several versions of the application, to avoid over inflating the repository, and to allow data to be loaded in chunks into MongoDB.
 
 ## Development helpers
-
-### MongoDB Locks
-
-If you require a write lock for Mongo you can acquire it via `server.locker` or `request.locker`:
-
-```javascript
-async function doStuff(server) {
-  const lock = await server.locker.lock('unique-resource-name')
-
-  if (!lock) {
-    // Lock unavailable
-    return
-  }
-
-  try {
-    // do stuff
-  } finally {
-    await lock.free()
-  }
-}
-```
-
-Keep it small and atomic.
-
-You may use **using** for the lock resource management.
-Note test coverage reports do not like that syntax.
-
-```javascript
-async function doStuff(server) {
-  await using lock = await server.locker.lock('unique-resource-name')
-
-  if (!lock) {
-    // Lock unavailable
-    return
-  }
-
-  // do stuff
-
-  // lock automatically released
-}
-```
-
-Helper methods are also available in `/src/helpers/mongo-lock.js`.
-
-### Proxy
-
-We are using forward-proxy which is set up by default. Services are automatically configured with the proxy environment variables when deployed.
-
-Node.js 24 uses these variables to route outbound HTTP(S) requests through the proxy:
-
-NODE_USE_ENV_PROXY=1
-HTTPS_PROXY=...
-NO_PROXY=...
-
-No additional proxy configuration is required in the service.
 
 ## Docker
 
@@ -227,10 +163,8 @@ docker run -e PORT=3001 -p 3001:3001 grants-scoring-api
 A local environment with:
 
 - Floci for AWS services (S3, SQS, SNS etc)
-- Redis
 - MongoDB
-- This service.
-- A commented out frontend example.
+- This service
 
 ```bash
 docker compose up --build -d
@@ -241,12 +175,11 @@ MongoDB records can also be created when Mongo starts by editing the scripts in 
 
 ### Dependabot
 
-We have added an example dependabot configuration file to the repository. You can enable it by renaming
-the [.github/example.dependabot.yml](.github/example.dependabot.yml) to `.github/dependabot.yml`
+Dependabot is enabled for this repository, and configured in file `.github/dependabot.yml`
 
 ### SonarCloud
 
-Instructions for setting up SonarCloud can be found in [sonar-project.properties](./sonar-project.properties)
+Sonarcloud is enabled for this repository, please see https://sonarcloud.io/project/overview?id=DEFRA_grants-scoring-api
 
 ## Licence
 

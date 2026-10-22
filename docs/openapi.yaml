@@ -1,0 +1,189 @@
+openapi: 3.0.3
+info:
+  title: Grants Scoring API
+  description: Core delivery platform Node.js Backend API for grant scoring.
+  version: 0.0.0
+servers:
+  - url: http://localhost:3001
+    description: Local development server
+  - url: https://ephemeral-protected.api.dev.cdp-int.defra.cloud/grants-scoring-api
+    description: Dev environment
+  - url: https://ephemeral-protected.api.test.cdp-int.defra.cloud/grants-scoring-api
+    description: Test environment
+  - url: https://ephemeral-protected.api.ext-test.cdp-int.defra.cloud/grants-scoring-api
+    description: Ext-test environment
+  - url: https://ephemeral-protected.api.perf-test.cdp-int.defra.cloud/grants-scoring-api
+    description: Perf-test environment
+paths:
+  /validate/location:
+    get:
+      tags:
+        - Validation
+      summary: Validate location
+      description: Validates if a location (easting/northing) is supported for scoring.
+      parameters:
+        - $ref: '#/components/parameters/EastingQuery'
+        - $ref: '#/components/parameters/NorthingQuery'
+      responses:
+        '200':
+          description: Location is valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Location not found or invalid coordinates
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+      security:
+        - serviceAuth: []
+
+  /scoring/{grant}:
+    get:
+      tags:
+        - Scoring
+      summary: Calculate score
+      description: Evaluates a grant application based on the grant type and environmental parameters.
+      parameters:
+        - name: grant
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [water-management]
+          description: The grant identifier
+        - name: sectorsIrrigated
+          in: query
+          required: true
+          style: form
+          explode: false
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - SOFT_AND_CANE_FRUIT
+                - PROTECTED_EDIBLE_CROPS
+                - ORNAMENTALS
+                - FOREST_NURSERY
+                - TOP_AND_STONE_FRUIT
+                - VINEYARDS
+                - FIELD_SCALE_VEGETABLES
+                - ARABLE
+                - GRASS_FEEDING_LIVESTOCK_COMMERCIAL_TURF
+                - SOMETHING_ELSE
+          description: The sectors being irrigated using the water from the project. Can be a comma-separated list.
+        - $ref: '#/components/parameters/EastingQuery'
+        - $ref: '#/components/parameters/NorthingQuery'
+        - name: businessesUsingWater
+          in: query
+          required: true
+          schema:
+            type: string
+            enum:
+              - FIVE_OR_MORE
+              - TWO_TO_FOUR
+              - ONE
+          description: The number of businesses using the water from the project.
+        - name: planning
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [Y, N, NN]
+          description: Whether planning permission is needed/held (Y=Yes, N=No, NN=Not Needed).
+        - name: abstraction
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [Y, N, NN]
+          description: Whether an abstraction licence is needed/held (Y=Yes, N=No, NN=Not Needed).
+      responses:
+        '200':
+          description: Scoring successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScoringResponse'
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Unsupported grant identifier
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - serviceAuth: []
+
+components:
+  securitySchemes:
+    serviceAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Service-to-service authentication using JWT.
+
+  parameters:
+    EastingQuery:
+      name: easting
+      in: query
+      required: true
+      schema:
+        type: number
+      description: The easting coordinate of the location (British National Grid).
+    NorthingQuery:
+      name: northing
+      in: query
+      required: true
+      schema:
+        type: number
+      description: The northing coordinate of the location (British National Grid).
+
+  schemas:
+    SuccessResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: success
+
+    ScoringResponse:
+      type: object
+      properties:
+        totalScore:
+          type: number
+          description: The overall score calculated for the grant application.
+        sectorScore:
+          type: number
+          description: Score attributed to the irrigated sectors.
+        scarcityScore:
+          type: number
+          description: Score attributed to the water scarcity in the location.
+        collaborationScore:
+          type: number
+          description: Score attributed to business collaboration.
+        planningAbstractionScore:
+          type: number
+          description: Score attributed to planning and abstraction status.
+
+    ErrorResponse:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+        error:
+          type: string
+        message:
+          type: string
