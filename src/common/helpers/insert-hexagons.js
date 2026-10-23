@@ -28,9 +28,10 @@ export const insertDataIntoHexagonsCollection = async (server) => {
 
     const files = (await fs.readdir(dataDir)).filter((f) => f.endsWith('.json'))
 
+    let totalInserted = 0
     for (const filename of files) {
       const filePath = path.join(dataDir, filename)
-      logger.info(`Importing hexagon data from ${filename}...`)
+      logger.debug(`Importing hexagon data from ${filename}...`)
 
       const content = await fs.readFile(filePath, 'utf8')
       const data = JSON.parse(content)
@@ -39,15 +40,20 @@ export const insertDataIntoHexagonsCollection = async (server) => {
         const result = await collection
           .insertMany(data, { ordered: false })
           .catch(ignoreDuplicateKeyError)
-        logger.info(
-          `Successfully imported ${result.insertedCount || 0} hexagons from ${filename}`
+        const insertedCount = result.insertedCount || 0
+        totalInserted += insertedCount
+        logger.debug(
+          `Successfully imported ${insertedCount} hexagons from ${filename}`
         )
       } else {
-        logger.info(
+        logger.warn(
           `Hexagon data file ${filename} is empty or invalid, skipping`
         )
       }
     }
+    logger.info(
+      `Successfully imported ${totalInserted} hexagons across ${files.length} files`
+    )
   } catch (error) {
     if (error.code === 'ENOENT') {
       logger.info(`Hexagon data directory not found, skipping import`)
@@ -55,7 +61,7 @@ export const insertDataIntoHexagonsCollection = async (server) => {
       logger.error(error, 'Failed to insert data into hexagons collection')
     }
   } finally {
-    if (lock) {
+    if (lock.release) {
       await lock.release()
     }
   }

@@ -1,5 +1,6 @@
 import { StatusCodes } from 'http-status-codes'
 import Boom from '@hapi/boom'
+import { audit } from '@defra/cdp-auditing'
 import { calculateScore as calculateWaterManagementScore } from '#/common/helpers/scoring/water-management.js'
 import { scoringParamsSchema, scoringQuerySchema } from '#/routes/schemas.js'
 
@@ -23,7 +24,16 @@ export const scoring = [
         planning,
         abstraction
       } = request.query
-
+      audit(
+        {
+          event: 'scoring-request',
+          grant,
+          location: { easting, northing },
+          sectorsIrrigated,
+          businessesUsingWater
+        },
+        'Calculating score for grant'
+      )
       if (grant === 'water-management') {
         const scores = await calculateWaterManagementScore(
           request.server,
