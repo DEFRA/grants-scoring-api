@@ -9,7 +9,8 @@ const serviceVersion = config.get('serviceVersion')
 
 const logFormat = logConfig.format
 
-export const loggerStream = logFormat === 'pino-pretty' ? pinoPretty() : undefined
+export const loggerStream =
+  logFormat === 'pino-pretty' ? pinoPretty() : undefined
 
 const formatOptions =
   logFormat === 'ecs'

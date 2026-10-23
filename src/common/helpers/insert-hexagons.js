@@ -12,7 +12,9 @@ export const insertDataIntoHexagonsCollection = async (server) => {
   const lock = await acquireLock(locker, 'insert-hexagons', logger)
 
   if (!lock) {
-    logger.info('Hexagon data import already in progress or handled by another instance')
+    logger.info(
+      'Hexagon data import already in progress or handled by another instance'
+    )
     return
   }
 
