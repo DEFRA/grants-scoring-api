@@ -11,6 +11,9 @@ vi.mock('mongodb', () => {
   const mockCollection = {
     countDocuments: vi.fn().mockResolvedValue(0),
     insertMany: vi.fn().mockResolvedValue({ insertedCount: 0 }),
+    insertOne: vi.fn().mockResolvedValue({}),
+    deleteOne: vi.fn().mockResolvedValue({ deletedCount: 1 }),
+    updateOne: vi.fn().mockResolvedValue({ matchedCount: 1 }),
     createIndex: vi.fn().mockResolvedValue({}),
     createIndexes: vi.fn().mockResolvedValue({})
   }

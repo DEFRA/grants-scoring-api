@@ -81,10 +81,11 @@ const addServiceAccessPreHandler = (server) => {
       request.route.settings.plugins?.['service-auth']?.allowedSubjects
 
     if (allowedSubjects) {
-      allowedSubjects.push(LOCAL_SUBJECT) // Always allow local services for testing purposes
-
       const { serviceName } = request.auth.credentials
-      if (!serviceName || !allowedSubjects.includes(serviceName)) {
+      const isAllowed =
+        serviceName === LOCAL_SUBJECT || allowedSubjects.includes(serviceName)
+
+      if (!serviceName || !isAllowed) {
         logger.warn(
           `Access denied for subject '${serviceName}' to restricted endpoint '${request.path}'`
         )
