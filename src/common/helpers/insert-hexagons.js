@@ -2,9 +2,20 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import { acquireLock } from '#/common/helpers/mongo-lock.js'
+
 const MONGODB_DUPLICATE_KEY_ERROR_CODE = 11000
 
-export const insertDataIntoHexagonsCollection = async ({ db, logger }) => {
+export const insertDataIntoHexagonsCollection = async (server) => {
+  const { db, locker, logger } = server
+
+  const lock = await acquireLock(locker, 'insert-hexagons', logger)
+
+  if (!lock) {
+    logger.info('Hexagon data import already in progress or handled by another instance')
+    return
+  }
+
   const dirname = path.dirname(fileURLToPath(import.meta.url))
   const dataDir = path.join(dirname, 'data')
   try {
@@ -40,6 +51,10 @@ export const insertDataIntoHexagonsCollection = async ({ db, logger }) => {
       logger.info(`Hexagon data directory not found, skipping import`)
     } else {
       logger.error(error, 'Failed to insert data into hexagons collection')
+    }
+  } finally {
+    if (lock) {
+      await lock.release()
     }
   }
 }
