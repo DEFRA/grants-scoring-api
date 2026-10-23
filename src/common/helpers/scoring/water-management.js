@@ -95,29 +95,21 @@ const recordMetrics = async (metrics, logger, inputs, scores) => {
 }
 
 export const sectorsIrrigatedScores = {
-  SOFT_AND_CANE_FRUIT: 25,
-  PROTECTED_EDIBLE_CROPS: 25,
-  ORNAMENTALS: 20,
-  FOREST_NURSERY: 20,
-  TOP_AND_STONE_FRUIT: 15,
-  VINEYARDS: 15,
-  FIELD_SCALE_VEGETABLES: 15,
-  ARABLE: 5,
-  GRASS_FEEDING_LIVESTOCK_COMMERCIAL_TURF: 2,
+  SOFT_AND_CANE_FRUIT: 30,
+  PROTECTED_EDIBLE_CROPS: 30,
+  TOP_AND_STONE_FRUIT: 20,
+  FIELD_SCALE_VEGETABLES: 20,
+  ARABLE: 20,
+  ORNAMENTALS: 10,
+  FOREST_NURSERY: 10,
+  GRASS_FEEDING_LIVESTOCK_COMMERCIAL_TURF: 10,
   SOMETHING_ELSE: 0
 }
 
 /**
- * Sector is scored out of 25.
+ * Sector is scored out of 30.
  * <br/>
  * If multiple sectors are being irrigated using the water from this project, the highest score is used.
- *
- * Scores awarded for sectors irrigated using the water from this project:
- * <li>25% - Soft & Cane Fruit (SOFT_AND_CANE_FRUIT), Protected edible crops (PROTECTED_EDIBLE_CROPS)</li>
- * <li>20% - Ornamentals (ORNAMENTALS), Forest Nursery (FOREST_NURSERY)</li>
- * <li>15% - Top & Stone Fruit (TOP_AND_STONE_FRUIT), Vineyards (VINEYARDS), Field scale vegetables (FIELD_SCALE_VEGETABLES)</li>
- * <li>5% - Arable (ARABLE)</li>
- * <li>2% - Grass - for feeding livestock, commercial turf (GRASS_FEEDING_LIVESTOCK_COMMERCIAL_TURF)</li>
  *
  * @param {string[]} sectorsIrrigated - sectors irrigated using the water from the project
  * @returns {number} - the highest score awarded out of the sectors provided
@@ -130,18 +122,13 @@ export const calculateSectorScore = (sectorsIrrigated) => {
 }
 
 export const collaborationScores = {
-  FIVE_OR_MORE: 10,
-  TWO_TO_FOUR: 5,
+  FIVE_OR_MORE: 15,
+  TWO_TO_FOUR: 7,
   ONE: 0
 }
 
 /**
- * Collaboration is scored out of 10.
- * <br/>
- * Scores awarded for the number of businesses using the water from this project:
- * <li>10% - Five or more (FIVE_OR_MORE)</li>
- * <li>5% - Two to Four (TWO_TO_FOUR)</li>
- * <li>0% - One (ONE)</li>
+ * Collaboration is scored out of 15.
  *
  * @param {string} businessesUsingWater - the number of businesses using the water from the project
  * @returns {number} - the score awarded based on the number of businesses
@@ -152,15 +139,6 @@ export const calculateCollaborationScore = (businessesUsingWater) => {
 
 /**
  * Planning/Abstraction is scored out of 5.
- * <br/>
- * Scores awarded based on if planning permission and abstraction licence are needed/held:
- * <li>5% - Planning and abstraction are held</li>
- * <li>0% - Neither planning nor abstraction are held</li>
- * <li>0% - Abstraction is held, but planning is NOT held</li>
- * <li>0% - Planning is held, but abstraction is NOT held</li>
- * <li>5% - Abstraction is held, and planning is not needed</li>
- * <li>5% - Planning is held, and abstraction is not needed</li>
- * <li>5% - Neither planning nor abstraction is needed</li>
  *
  * @param {string} planning - whether planning permission is needed/held
  * @param {string} abstraction - whether an abstraction licence is needed/held
@@ -172,7 +150,8 @@ export const calculatePlanningAbstractionScore = (planning, abstraction) => {
 }
 
 /**
- * Scarcity is scored out of a maximum percentage
+ * Scarcity is scored out of 50.
+ *
  * @param logger
  * @param db
  * @param easting
@@ -181,14 +160,14 @@ export const calculatePlanningAbstractionScore = (planning, abstraction) => {
  */
 export const calculateScarcityScore = async (logger, db, easting, northing) => {
   const scoreToPercentageMappings = {
-    9: 60,
-    8: 55,
-    7: 50,
-    6: 45,
-    5: 40,
-    4: 35,
-    3: 30,
-    2: 25
+    9: 50,
+    8: 45,
+    7: 45,
+    6: 35,
+    5: 35,
+    4: 25,
+    3: 25,
+    2: 15
   }
 
   const { q, r } = pointToHexagon(logger, easting, northing)

@@ -40,19 +40,19 @@ describe('Schemas', () => {
     it('should handle comma-separated sectorsIrrigated', () => {
       const { error, value } = scoringQuerySchema.validate({
         ...validData,
-        sectorsIrrigated: 'ARABLE,VINEYARDS'
+        sectorsIrrigated: 'ARABLE,TOP_AND_STONE_FRUIT'
       })
       expect(error).toBeUndefined()
-      expect(value.sectorsIrrigated).toEqual(['ARABLE', 'VINEYARDS'])
+      expect(value.sectorsIrrigated).toEqual(['ARABLE', 'TOP_AND_STONE_FRUIT'])
     })
 
     it('should handle array of sectorsIrrigated', () => {
       const { error, value } = scoringQuerySchema.validate({
         ...validData,
-        sectorsIrrigated: ['ARABLE', 'VINEYARDS']
+        sectorsIrrigated: ['ARABLE', 'TOP_AND_STONE_FRUIT']
       })
       expect(error).toBeUndefined()
-      expect(value.sectorsIrrigated).toEqual(['ARABLE', 'VINEYARDS'])
+      expect(value.sectorsIrrigated).toEqual(['ARABLE', 'TOP_AND_STONE_FRUIT'])
     })
 
     it('should fail if sectorsIrrigated is invalid', () => {
