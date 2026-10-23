@@ -39,10 +39,10 @@ describe('water-management helper', () => {
       )
 
       expect(result).toEqual({
-        totalScore: 100, // 25 (sector) + 60 (scarcity) + 10 (collaboration) + 5 (planning/abstraction)
-        sectorScore: 25,
-        scarcityScore: 60,
-        collaborationScore: 10,
+        totalScore: 100, // 30 (sector) + 50 (scarcity) + 15 (collaboration) + 5 (planning/abstraction)
+        sectorScore: 30,
+        scarcityScore: 50,
+        collaborationScore: 15,
         planningAbstractionScore: 5
       })
 
@@ -53,7 +53,7 @@ describe('water-management helper', () => {
         'scoring.outcome',
         'sector',
         {
-          outcome: 25
+          outcome: 30
         }
       )
       expect(trackEvent).toHaveBeenNthCalledWith(
@@ -62,7 +62,7 @@ describe('water-management helper', () => {
         'scoring.outcome',
         'collaboration',
         {
-          outcome: 10,
+          outcome: 15,
           reason: 'FIVE_OR_MORE'
         }
       )
@@ -83,7 +83,7 @@ describe('water-management helper', () => {
         'scoring.outcome',
         'scarcity',
         {
-          outcome: 60,
+          outcome: 50,
           reference: '{"easting":380712,"northing":396269}'
         }
       )
@@ -100,42 +100,38 @@ describe('water-management helper', () => {
   })
 
   describe('calculateSectorScore', () => {
-    it('should return 25 for SOFT_AND_CANE_FRUIT', () => {
-      expect(calculateSectorScore(['SOFT_AND_CANE_FRUIT'])).toBe(25)
+    it('should return 30 for SOFT_AND_CANE_FRUIT', () => {
+      expect(calculateSectorScore(['SOFT_AND_CANE_FRUIT'])).toBe(30)
     })
 
-    it('should return 25 for PROTECTED_EDIBLE_CROPS', () => {
-      expect(calculateSectorScore(['PROTECTED_EDIBLE_CROPS'])).toBe(25)
+    it('should return 30 for PROTECTED_EDIBLE_CROPS', () => {
+      expect(calculateSectorScore(['PROTECTED_EDIBLE_CROPS'])).toBe(30)
     })
 
-    it('should return 20 for ORNAMENTALS', () => {
-      expect(calculateSectorScore(['ORNAMENTALS'])).toBe(20)
+    it('should return 10 for ORNAMENTALS', () => {
+      expect(calculateSectorScore(['ORNAMENTALS'])).toBe(10)
     })
 
-    it('should return 20 for FOREST_NURSERY', () => {
-      expect(calculateSectorScore(['FOREST_NURSERY'])).toBe(20)
+    it('should return 10 for FOREST_NURSERY', () => {
+      expect(calculateSectorScore(['FOREST_NURSERY'])).toBe(10)
     })
 
-    it('should return 15 for TOP_AND_STONE_FRUIT', () => {
-      expect(calculateSectorScore(['TOP_AND_STONE_FRUIT'])).toBe(15)
+    it('should return 20 for TOP_AND_STONE_FRUIT', () => {
+      expect(calculateSectorScore(['TOP_AND_STONE_FRUIT'])).toBe(20)
     })
 
-    it('should return 15 for VINEYARDS', () => {
-      expect(calculateSectorScore(['VINEYARDS'])).toBe(15)
+    it('should return 20 for FIELD_SCALE_VEGETABLES', () => {
+      expect(calculateSectorScore(['FIELD_SCALE_VEGETABLES'])).toBe(20)
     })
 
-    it('should return 15 for FIELD_SCALE_VEGETABLES', () => {
-      expect(calculateSectorScore(['FIELD_SCALE_VEGETABLES'])).toBe(15)
+    it('should return 20 for ARABLE', () => {
+      expect(calculateSectorScore(['ARABLE'])).toBe(20)
     })
 
-    it('should return 5 for ARABLE', () => {
-      expect(calculateSectorScore(['ARABLE'])).toBe(5)
-    })
-
-    it('should return 2 for GRASS_FEEDING_LIVESTOCK_COMMERCIAL_TURF', () => {
+    it('should return 10 for GRASS_FEEDING_LIVESTOCK_COMMERCIAL_TURF', () => {
       expect(
         calculateSectorScore(['GRASS_FEEDING_LIVESTOCK_COMMERCIAL_TURF'])
-      ).toBe(2)
+      ).toBe(10)
     })
 
     it('should return 0 for SOMETHING_ELSE', () => {
@@ -144,25 +140,29 @@ describe('water-management helper', () => {
 
     it('should return the highest score when multiple sectors are provided', () => {
       expect(
-        calculateSectorScore(['ARABLE', 'SOFT_AND_CANE_FRUIT', 'VINEYARDS'])
-      ).toBe(25)
+        calculateSectorScore([
+          'ARABLE',
+          'SOFT_AND_CANE_FRUIT',
+          'TOP_AND_STONE_FRUIT'
+        ])
+      ).toBe(30)
       expect(
         calculateSectorScore([
           'ARABLE',
           'GRASS_FEEDING_LIVESTOCK_COMMERCIAL_TURF'
         ])
-      ).toBe(5)
-      expect(calculateSectorScore(['ARABLE', 'SOMETHING_ELSE'])).toBe(5)
+      ).toBe(20)
+      expect(calculateSectorScore(['ARABLE', 'SOMETHING_ELSE'])).toBe(20)
     })
   })
 
   describe('calculateCollaborationScore', () => {
-    it('should return 10 for FIVE_OR_MORE', () => {
-      expect(calculateCollaborationScore('FIVE_OR_MORE')).toBe(10)
+    it('should return 15 for FIVE_OR_MORE', () => {
+      expect(calculateCollaborationScore('FIVE_OR_MORE')).toBe(15)
     })
 
-    it('should return 5 for TWO_TO_FOUR', () => {
-      expect(calculateCollaborationScore('TWO_TO_FOUR')).toBe(5)
+    it('should return 7 for TWO_TO_FOUR', () => {
+      expect(calculateCollaborationScore('TWO_TO_FOUR')).toBe(7)
     })
 
     it('should return 0 for ONE', () => {
@@ -210,14 +210,14 @@ describe('water-management helper', () => {
 
     it('should return correct scores for each case in the switch', async () => {
       const cases = [
-        { hexScore: 9, expected: 60 },
-        { hexScore: 8, expected: 55 },
-        { hexScore: 7, expected: 50 },
-        { hexScore: 6, expected: 45 },
-        { hexScore: 5, expected: 40 },
-        { hexScore: 4, expected: 35 },
-        { hexScore: 3, expected: 30 },
-        { hexScore: 2, expected: 25 }
+        { hexScore: 9, expected: 50 },
+        { hexScore: 8, expected: 45 },
+        { hexScore: 7, expected: 45 },
+        { hexScore: 6, expected: 35 },
+        { hexScore: 5, expected: 35 },
+        { hexScore: 4, expected: 25 },
+        { hexScore: 3, expected: 25 },
+        { hexScore: 2, expected: 15 }
       ]
 
       for (const { hexScore, expected } of cases) {
