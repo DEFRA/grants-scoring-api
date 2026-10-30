@@ -17,8 +17,8 @@ describe('#scoringController', () => {
       collaborationScore: 0,
       planningAbstractionScore: 0,
       scarcityScore: 0,
-      sectorScore: 2,
-      totalScore: 2
+      sectorScore: 10,
+      totalScore: 10
     },
     {
       sectorsDesc: 'Arable, Top & Stone Fruit, and Ornamentals sectors are',
@@ -33,12 +33,12 @@ describe('#scoringController', () => {
     {
       sectorsDesc: 'All sectors are',
       params:
-        'easting=286394&northing=128750&sectorsIrrigated=SOFT_AND_CANE_FRUIT&sectorsIrrigated=PROTECTED_EDIBLE_CROPS&sectorsIrrigated=ORNAMENTALS&sectorsIrrigated=FOREST_NURSERY&sectorsIrrigated=TOP_AND_STONE_FRUIT&sectorsIrrigated=VINEYARDS&sectorsIrrigated=FIELD_SCALE_VEGETABLES&sectorsIrrigated=ARABLE&sectorsIrrigated=GRASS_FEEDING_LIVESTOCK_COMMERCIAL_TURF&businessesUsingWater=ONE&planning=Y&abstraction=N',
+        'easting=286394&northing=128750&sectorsIrrigated=SOFT_AND_CANE_FRUIT&sectorsIrrigated=PROTECTED_EDIBLE_CROPS&sectorsIrrigated=ORNAMENTALS&sectorsIrrigated=FOREST_NURSERY&sectorsIrrigated=TOP_AND_STONE_FRUIT&sectorsIrrigated=FIELD_SCALE_VEGETABLES&sectorsIrrigated=ARABLE&sectorsIrrigated=GRASS_FEEDING_LIVESTOCK_COMMERCIAL_TURF&businessesUsingWater=ONE&planning=Y&abstraction=N',
       collaborationScore: 0,
       planningAbstractionScore: 0,
       scarcityScore: 0,
-      sectorScore: 25,
-      totalScore: 25
+      sectorScore: 30,
+      totalScore: 30
     }
   ])(
     'The scoring API has been updated - $sectorsDesc selected - should return a sector score of $sectorScore',
@@ -111,28 +111,28 @@ describe('#scoringController', () => {
       collaborationScore: 0,
       planningAbstractionScore: 0,
       scarcityScore: 0,
-      sectorScore: 20,
-      totalScore: 20
+      sectorScore: 10,
+      totalScore: 10
     },
     {
       collaborationDesc: 'Two to four businesses are',
       params:
         'easting=286394&northing=128750&sectorsIrrigated=ORNAMENTALS&businessesUsingWater=TWO_TO_FOUR&planning=Y&abstraction=N',
-      collaborationScore: 5,
+      collaborationScore: 7,
       planningAbstractionScore: 0,
       scarcityScore: 0,
-      sectorScore: 20,
-      totalScore: 25
+      sectorScore: 10,
+      totalScore: 17
     },
     {
       collaborationDesc: 'Five or more businesses are',
       params:
         'easting=286394&northing=128750&sectorsIrrigated=ORNAMENTALS&businessesUsingWater=FIVE_OR_MORE&planning=Y&abstraction=N',
-      collaborationScore: 10,
+      collaborationScore: 15,
       planningAbstractionScore: 0,
       scarcityScore: 0,
-      sectorScore: 20,
-      totalScore: 30
+      sectorScore: 10,
+      totalScore: 25
     }
   ])(
     'The scoring API has been updated - $collaborationDesc selected - The returned score percentage for Collaboration is $collaborationScore%',
@@ -168,8 +168,8 @@ describe('#scoringController', () => {
       collaborationScore: 0,
       planningAbstractionScore: 0,
       scarcityScore: 0,
-      sectorScore: 15,
-      totalScore: 15
+      sectorScore: 20,
+      totalScore: 20
     },
     {
       planningAbstractionDesc: 'Planning N and Abstraction Y is',
@@ -178,8 +178,8 @@ describe('#scoringController', () => {
       collaborationScore: 0,
       planningAbstractionScore: 0,
       scarcityScore: 0,
-      sectorScore: 15,
-      totalScore: 15
+      sectorScore: 20,
+      totalScore: 20
     },
     {
       planningAbstractionDesc: 'Planning N and Abstraction N is',
@@ -188,8 +188,8 @@ describe('#scoringController', () => {
       collaborationScore: 0,
       planningAbstractionScore: 0,
       scarcityScore: 0,
-      sectorScore: 15,
-      totalScore: 15
+      sectorScore: 20,
+      totalScore: 20
     },
     {
       planningAbstractionDesc: 'Planning Y and Abstraction Y is',
@@ -198,8 +198,8 @@ describe('#scoringController', () => {
       collaborationScore: 0,
       planningAbstractionScore: 5,
       scarcityScore: 0,
-      sectorScore: 15,
-      totalScore: 20
+      sectorScore: 20,
+      totalScore: 25
     },
     {
       planningAbstractionDesc: 'Planning Y and Abstraction NN is',
@@ -208,8 +208,8 @@ describe('#scoringController', () => {
       collaborationScore: 0,
       planningAbstractionScore: 5,
       scarcityScore: 0,
-      sectorScore: 15,
-      totalScore: 20
+      sectorScore: 20,
+      totalScore: 25
     },
     {
       planningAbstractionDesc: 'Planning NN and Abstraction Y is',
@@ -218,8 +218,8 @@ describe('#scoringController', () => {
       collaborationScore: 0,
       planningAbstractionScore: 5,
       scarcityScore: 0,
-      sectorScore: 15,
-      totalScore: 20
+      sectorScore: 20,
+      totalScore: 25
     },
     {
       planningAbstractionDesc: 'Planning NN and Abstraction NN is',
@@ -228,8 +228,8 @@ describe('#scoringController', () => {
       collaborationScore: 0,
       planningAbstractionScore: 5,
       scarcityScore: 0,
-      sectorScore: 15,
-      totalScore: 20
+      sectorScore: 20,
+      totalScore: 25
     }
   ])(
     'The scoring API has been updated - answer to $planningAbstractionDesc selected - returned score percentage for planningAbstraction is $planningAbstractionScore%',
