@@ -61,7 +61,7 @@
     "prettier": "3.9.10",
     "testcontainers": "12.2.1",
     "time-span": "5.1.0",
-    "vitest": "5.0.4",
+    "vitest": "5.0.5",
     "vitest-fetch-mock": "0.4.5",
     "vitest-mongodb": "1.0.3"
   }
