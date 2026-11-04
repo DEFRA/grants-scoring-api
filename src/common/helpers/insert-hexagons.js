@@ -23,7 +23,7 @@ export const insertDataIntoHexagonsCollection = async (server) => {
   try {
     const collection = db.collection('hexagons')
 
-    const count = await collection.countDocuments()
+    const count = await collection.estimatedDocumentCount()
     logger.info(`Hexagons collection currently contains ${count} documents`)
 
     const files = (await fs.readdir(dataDir)).filter((f) => f.endsWith('.json'))
@@ -61,8 +61,10 @@ export const insertDataIntoHexagonsCollection = async (server) => {
       logger.error(error, 'Failed to insert data into hexagons collection')
     }
   } finally {
-    if (lock.release) {
+    try {
       await lock.release()
+    } catch (error) {
+      logger.error(error, 'Failed to release lock')
     }
   }
 }

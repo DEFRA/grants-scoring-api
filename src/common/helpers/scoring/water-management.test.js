@@ -13,7 +13,7 @@ vi.mock('../logging/logger.js')
 
 describe('water-management helper', () => {
   describe('calculateScore', () => {
-    const logger = { info: vi.fn(), trackEvent: vi.fn() }
+    const logger = { info: vi.fn(), debug: vi.fn(), trackEvent: vi.fn() }
     const mockMetrics = {
       counter: vi.fn().mockResolvedValue()
     }
@@ -201,7 +201,7 @@ describe('water-management helper', () => {
   })
 
   describe('calculateScarcityScore', () => {
-    const logger = { info: vi.fn() }
+    const logger = { info: vi.fn(), debug: vi.fn() }
 
     const mockDb = (score) => ({
       collection: vi.fn().mockReturnThis(),
@@ -235,7 +235,7 @@ describe('water-management helper', () => {
     })
 
     it('should validate that each point of a hexagon snaps to a hexagon with the same score', async () => {
-      const logger = { info: vi.fn() }
+      const logger = { info: vi.fn(), debug: vi.fn() }
       const points = [
         { name: 'CentralPoint', easting: 509132.24385, northing: 371550.7349 },
         {
@@ -292,7 +292,7 @@ describe('water-management helper', () => {
   })
 
   describe('pointToHexagon', () => {
-    const logger = { info: vi.fn() }
+    const logger = { info: vi.fn(), debug: vi.fn() }
     it('should correctly map easting=380712, northing=396269 to correct hexagon', () => {
       // Manual calculation with updated hexagon size (Area = 8660.260000033304):
       // s = sqrt(2 * A / (3 * sqrt(3))) = sqrt(17320.52 / 5.1961524) = sqrt(3333.333) ~= 57.735

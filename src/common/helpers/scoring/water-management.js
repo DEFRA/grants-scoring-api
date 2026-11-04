@@ -259,7 +259,7 @@ export const pointToHexagon = (logger, easting, northing) => {
       northingOffset
     ).toFixed(calculatedCentreDecimalPlaces)
   )
-  logger.info(
+  logger.debug(
     `Selected hexagon central point: Easting ${eastingHexagonCentre}, Northing ${northingHexagonCentre}`
   )
 
