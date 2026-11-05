@@ -1,5 +1,4 @@
 import { StatusCodes } from 'http-status-codes'
-import Boom from '@hapi/boom'
 import {
   pointToHexagon,
   getHexagonScoreFromDatastore
