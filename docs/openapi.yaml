@@ -26,13 +26,13 @@ paths:
         - $ref: '#/components/parameters/NorthingQuery'
       responses:
         '200':
-          description: Location is valid
+          description: Location validation successful
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
         '400':
-          description: Location not found or invalid coordinates
+          description: Invalid request parameters
           content:
             application/json:
               schema:
@@ -157,6 +157,10 @@ components:
         message:
           type: string
           example: success
+        locationFound:
+          type: boolean
+          example: true
+          description: Indicates whether a score was found for the location.
 
     ScoringResponse:
       type: object
