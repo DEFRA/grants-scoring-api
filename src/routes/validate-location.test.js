@@ -66,7 +66,7 @@ describe('Validate Location Route', () => {
     })
 
     expect(res.statusCode).toBe(StatusCodes.OK)
-    expect(res.result).toEqual({ message: 'success' })
+    expect(res.result).toEqual({ message: 'success', locationFound: true })
     expect(waterManagementHelper.pointToHexagon).toHaveBeenCalled()
     expect(
       waterManagementHelper.getHexagonScoreFromDatastore
@@ -74,7 +74,7 @@ describe('Validate Location Route', () => {
     expect(mockMetrics.counter).toHaveBeenCalledWith('validation.success')
   })
 
-  it('should return 400 if location does not exist in database', async () => {
+  it('should return 200 if location does not exist in database', async () => {
     waterManagementHelper.pointToHexagon.mockReturnValue({ q: 3, r: 4 })
     waterManagementHelper.getHexagonScoreFromDatastore.mockResolvedValue(0)
 
@@ -83,8 +83,8 @@ describe('Validate Location Route', () => {
       url: '/validate/location?easting=380712&northing=396269'
     })
 
-    expect(res.statusCode).toBe(StatusCodes.BAD_REQUEST)
-    expect(res.result.message).toBe('Location not found')
+    expect(res.statusCode).toBe(StatusCodes.OK)
+    expect(res.result).toEqual({ message: 'success', locationFound: false })
     expect(mockMetrics.counter).toHaveBeenCalledWith(
       'validation.fail.unsupported_location'
     )
