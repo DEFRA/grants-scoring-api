@@ -28,6 +28,8 @@ export const validateLocation = {
     }
 
     await request.metrics.counter(`validation.success`)
-    return h.response({ message: 'success', locationFound: true }).code(StatusCodes.OK)
+    return h
+      .response({ message: 'success', locationFound: true })
+      .code(StatusCodes.OK)
   }
 }
