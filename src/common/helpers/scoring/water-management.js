@@ -85,6 +85,9 @@ const recordMetrics = async (metrics, logger, inputs, scores) => {
     reason: planning,
     kind: abstraction
   })
+  if (planning === 'NN' || planning === 'NNDM') {
+    metrics.counter('scoring.planning.notneeded.' + planning)
+  }
   trackEvent(logger, `scoring.outcome`, `scarcity`, {
     outcome: scarcityScore,
     reference: JSON.stringify({ easting, northing })

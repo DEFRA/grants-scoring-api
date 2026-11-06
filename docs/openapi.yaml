@@ -93,8 +93,8 @@ paths:
           required: true
           schema:
             type: string
-            enum: [Y, N, NN]
-          description: Whether planning permission is needed/held (Y=Yes, N=No, NN=Not Needed).
+            enum: [Y, N, NN, NNDM]
+          description: Whether planning permission is needed/held (Y=Yes, N=No, NN=Not Needed, NNDM=Not Needed because using distribution main only).
         - name: abstraction
           in: query
           required: true

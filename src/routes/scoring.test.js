@@ -136,6 +136,33 @@ describe('Scoring Route', () => {
     expect(mockMetrics.counter).toHaveBeenCalledWith('scoring.success')
   })
 
+  it('should return 200 with planning set to NNDM', async () => {
+    waterManagementHelper.calculateScore.mockResolvedValue({
+      totalScore: 100,
+      sectorScore: 25,
+      scarcityScore: 60,
+      collaborationScore: 10,
+      planningAbstractionScore: 5
+    })
+
+    const res = await server.inject({
+      method: 'GET',
+      url: '/scoring/water-management?easting=380712&northing=396269&sectorsIrrigated=SOFT_AND_CANE_FRUIT&businessesUsingWater=FIVE_OR_MORE&planning=NNDM&abstraction=Y'
+    })
+
+    expect(res.statusCode).toBe(StatusCodes.OK)
+    expect(waterManagementHelper.calculateScore).toHaveBeenCalledWith(
+      server,
+      ['SOFT_AND_CANE_FRUIT'],
+      380712,
+      396269,
+      'FIVE_OR_MORE',
+      'NNDM',
+      'Y'
+    )
+    expect(mockMetrics.counter).toHaveBeenCalledWith('scoring.success')
+  })
+
   it('should support comma-separated sectorsIrrigated values', async () => {
     waterManagementHelper.calculateScore.mockResolvedValue({
       totalScore: 100

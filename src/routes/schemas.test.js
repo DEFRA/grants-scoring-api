@@ -75,6 +75,18 @@ describe('Schemas', () => {
       })
       expect(error).toBeDefined()
     })
+
+    it.each(['Y', 'N', 'NN', 'NNDM'])(
+      'should validate when planning is %s',
+      (planning) => {
+        const { error, value } = scoringQuerySchema.validate({
+          ...validData,
+          planning
+        })
+        expect(error).toBeUndefined()
+        expect(value.planning).toBe(planning)
+      }
+    )
   })
 
   describe('validateLocationQuerySchema', () => {
