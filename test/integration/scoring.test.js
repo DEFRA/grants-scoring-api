@@ -1,12 +1,33 @@
 import { startServer } from '#/common/helpers/start-server.js'
 import { StatusCodes } from 'http-status-codes'
+import { pointToHexagon } from '#/common/helpers/scoring/water-management.js'
 
 describe('#scoringController', () => {
   /** @type {Server} */
   let server
+  const scoreToEastingNorthingMap = {
+    9: { easting: 180712, northing: 296269 },
+    8: { easting: 180712, northing: 396269 },
+    7: { easting: 380712, northing: 496269 },
+    6: { easting: 480712, northing: 596269 },
+    5: { easting: 580712, northing: 696269 },
+    4: { easting: 680712, northing: 796269 },
+    3: { easting: 780712, northing: 896269 },
+    2: { easting: 880712, northing: 996269 },
+    1: { easting: 980712, northing: 196269 }
+  }
 
   beforeAll(async () => {
+    // Start the server
     server = await startServer()
+
+    // Insert the hexagon scores into the database
+    const { db } = server
+    for (const score in scoreToEastingNorthingMap) {
+      const { easting, northing } = scoreToEastingNorthingMap[score]
+      const { q, r } = pointToHexagon(server.logger, easting, northing)
+      await db.collection('hexagons').insertOne({ q, r, score: Number(score) })
+    }
   })
 
   test.each([
@@ -241,6 +262,116 @@ describe('#scoringController', () => {
       sectorScore,
       totalScore
     }) => {
+      const { result, statusCode } = await server.inject({
+        method: 'GET',
+        url: `/scoring/water-management?${params}`
+      })
+
+      expect(result).toEqual({
+        collaborationScore,
+        planningAbstractionScore,
+        scarcityScore,
+        sectorScore,
+        totalScore
+      })
+      expect(statusCode).toBe(StatusCodes.OK)
+    }
+  )
+
+  test.each([
+    {
+      scarcitySelectionDesc: 'An area on the map = level 9 is selected',
+      mapLevel: 9,
+      collaborationScore: 0,
+      planningAbstractionScore: 0,
+      scarcityScore: 50,
+      sectorScore: 20,
+      totalScore: 70
+    },
+    {
+      scarcitySelectionDesc: 'An area on the map = level 8 is selected',
+      mapLevel: 8,
+      collaborationScore: 0,
+      planningAbstractionScore: 0,
+      scarcityScore: 45,
+      sectorScore: 20,
+      totalScore: 65
+    },
+    {
+      scarcitySelectionDesc: 'An area on the map = level 7 is selected',
+      mapLevel: 7,
+      collaborationScore: 0,
+      planningAbstractionScore: 0,
+      scarcityScore: 45,
+      sectorScore: 20,
+      totalScore: 65
+    },
+    {
+      scarcitySelectionDesc: 'An area on the map = level 6 is selected',
+      mapLevel: 6,
+      collaborationScore: 0,
+      planningAbstractionScore: 0,
+      scarcityScore: 35,
+      sectorScore: 20,
+      totalScore: 55
+    },
+    {
+      scarcitySelectionDesc: 'An area on the map = level 5 is selected',
+      mapLevel: 5,
+      collaborationScore: 0,
+      planningAbstractionScore: 0,
+      scarcityScore: 35,
+      sectorScore: 20,
+      totalScore: 55
+    },
+    {
+      scarcitySelectionDesc: 'An area on the map = level 4 is selected',
+      mapLevel: 4,
+      collaborationScore: 0,
+      planningAbstractionScore: 0,
+      scarcityScore: 25,
+      sectorScore: 20,
+      totalScore: 45
+    },
+    {
+      scarcitySelectionDesc: 'An area on the map = level 3 is selected',
+      mapLevel: 3,
+      collaborationScore: 0,
+      planningAbstractionScore: 0,
+      scarcityScore: 25,
+      sectorScore: 20,
+      totalScore: 45
+    },
+    {
+      scarcitySelectionDesc: 'An area on the map = level 2 is selected',
+      mapLevel: 2,
+      collaborationScore: 0,
+      planningAbstractionScore: 0,
+      scarcityScore: 15,
+      sectorScore: 20,
+      totalScore: 35
+    },
+    {
+      scarcitySelectionDesc: 'An area on the map = level 1 is selected',
+      mapLevel: 1,
+      collaborationScore: 0,
+      planningAbstractionScore: 0,
+      scarcityScore: 0,
+      sectorScore: 20,
+      totalScore: 20
+    }
+  ])(
+    'The scoring API has been updated - $scarcitySelectionDesc - The returned scored percentage for Water Scarcity is equal to $scarcityScore points ($scarcityScore%)',
+    async ({
+      mapLevel,
+      collaborationScore,
+      planningAbstractionScore,
+      scarcityScore,
+      sectorScore,
+      totalScore
+    }) => {
+      const point = scoreToEastingNorthingMap[mapLevel]
+      const params = `easting=${point.easting}&northing=${point.northing}&sectorsIrrigated=TOP_AND_STONE_FRUIT&businessesUsingWater=ONE&planning=Y&abstraction=N`
       const { result, statusCode } = await server.inject({
         method: 'GET',
         url: `/scoring/water-management?${params}`
