@@ -4,7 +4,8 @@ import {
   collaborationScores
 } from '#/common/helpers/scoring/water-management.js'
 
-const planningAbstractionValues = ['Y', 'N', 'NN']
+const abstractionValues = ['Y', 'N', 'NN']
+const planningValues = ['Y', 'N', 'NN', 'NNDM']
 
 const easting = Joi.number()
   .required()
@@ -45,11 +46,11 @@ export const scoringQuerySchema = Joi.object({
     .required()
     .description('The number of businesses using the water from the project'),
   planning: Joi.string()
-    .valid(...planningAbstractionValues)
+    .valid(...planningValues)
     .required()
     .description('Whether planning permission is needed/held'),
   abstraction: Joi.string()
-    .valid(...planningAbstractionValues)
+    .valid(...abstractionValues)
     .required()
     .description('Whether an abstraction licence is needed/held')
 })

@@ -97,6 +97,85 @@ describe('water-management helper', () => {
         }
       )
     })
+
+    it('should record notneeded metric when planning is NN', async () => {
+      const db = {
+        collection: vi.fn().mockReturnThis(),
+        findOne: vi.fn().mockResolvedValue({ score: 9 })
+      }
+
+      await calculateScore(
+        { logger, db, metrics: mockMetrics },
+        ['SOFT_AND_CANE_FRUIT'],
+        380712,
+        396269,
+        'FIVE_OR_MORE',
+        'NN',
+        'Y'
+      )
+
+      expect(mockMetrics.counter).toHaveBeenCalledWith(
+        'scoring.planning.notneeded.NN'
+      )
+    })
+
+    it('should record notneeded metric when planning is NNDM', async () => {
+      const db = {
+        collection: vi.fn().mockReturnThis(),
+        findOne: vi.fn().mockResolvedValue({ score: 9 })
+      }
+
+      await calculateScore(
+        { logger, db, metrics: mockMetrics },
+        ['SOFT_AND_CANE_FRUIT'],
+        380712,
+        396269,
+        'FIVE_OR_MORE',
+        'NNDM',
+        'Y'
+      )
+
+      expect(mockMetrics.counter).toHaveBeenCalledWith(
+        'scoring.planning.notneeded.NNDM'
+      )
+    })
+
+    it('should not record notneeded metric when planning is Y or N', async () => {
+      const db = {
+        collection: vi.fn().mockReturnThis(),
+        findOne: vi.fn().mockResolvedValue({ score: 9 })
+      }
+
+      await calculateScore(
+        { logger, db, metrics: mockMetrics },
+        ['SOFT_AND_CANE_FRUIT'],
+        380712,
+        396269,
+        'FIVE_OR_MORE',
+        'Y',
+        'Y'
+      )
+
+      expect(mockMetrics.counter).not.toHaveBeenCalledWith(
+        expect.stringMatching(/^scoring\.planning\.notneeded\./)
+      )
+
+      vi.clearAllMocks()
+
+      await calculateScore(
+        { logger, db, metrics: mockMetrics },
+        ['SOFT_AND_CANE_FRUIT'],
+        380712,
+        396269,
+        'FIVE_OR_MORE',
+        'N',
+        'Y'
+      )
+
+      expect(mockMetrics.counter).not.toHaveBeenCalledWith(
+        expect.stringMatching(/^scoring\.planning\.notneeded\./)
+      )
+    })
   })
 
   describe('calculateSectorScore', () => {
@@ -197,6 +276,18 @@ describe('water-management helper', () => {
 
     it('should return 5 when neither are needed (NN, NN)', () => {
       expect(calculatePlanningAbstractionScore('NN', 'NN')).toBe(5)
+    })
+
+    it('should return 5 when planning is NNDM and abstraction is held (NNDM, Y)', () => {
+      expect(calculatePlanningAbstractionScore('NNDM', 'Y')).toBe(5)
+    })
+
+    it('should return 0 when planning is NNDM and abstraction is not held (NNDM, N)', () => {
+      expect(calculatePlanningAbstractionScore('NNDM', 'N')).toBe(0)
+    })
+
+    it('should return 5 when planning is NNDM and abstraction is not needed (NNDM, NN)', () => {
+      expect(calculatePlanningAbstractionScore('NNDM', 'NN')).toBe(5)
     })
   })
 
