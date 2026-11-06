@@ -66,20 +66,8 @@
     "vitest-mongodb": "1.0.3"
   },
   "overrides": {
-    "hapi-pulse": {
-      "joi": "18.3.1"
-    },
-    "eslint": {
-      "minimatch": "11.0.3"
-    },
-    "@typescript-eslint/typescript-estree": {
-      "minimatch": "11.0.3"
-    },
-    "archiver": {
-      "zip-stream": "7.0.5"
-    },
-    "archiver-utils": {
-      "glob": "14.0.3"
-    }
+    "joi": "18.3.1",
+    "glob": "14.0.3",
+    "minimatch": "11.0.3"
   }
 }
