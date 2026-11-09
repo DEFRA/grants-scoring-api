@@ -251,6 +251,36 @@ describe('#scoringController', () => {
       scarcityScore: 0,
       sectorScore: 20,
       totalScore: 25
+    },
+    {
+      planningAbstractionDesc: 'Planning NNDM and Abstraction Y is',
+      params:
+        'easting=286394&northing=128750&sectorsIrrigated=TOP_AND_STONE_FRUIT&businessesUsingWater=ONE&planning=NNDM&abstraction=Y',
+      collaborationScore: 0,
+      planningAbstractionScore: 5,
+      scarcityScore: 0,
+      sectorScore: 20,
+      totalScore: 25
+    },
+    {
+      planningAbstractionDesc: 'Planning NNDM and Abstraction N is',
+      params:
+        'easting=286394&northing=128750&sectorsIrrigated=TOP_AND_STONE_FRUIT&businessesUsingWater=ONE&planning=NNDM&abstraction=N',
+      collaborationScore: 0,
+      planningAbstractionScore: 0,
+      scarcityScore: 0,
+      sectorScore: 20,
+      totalScore: 20
+    },
+    {
+      planningAbstractionDesc: 'Planning NNDM and Abstraction NN is',
+      params:
+        'easting=286394&northing=128750&sectorsIrrigated=TOP_AND_STONE_FRUIT&businessesUsingWater=ONE&planning=NNDM&abstraction=NN',
+      collaborationScore: 0,
+      planningAbstractionScore: 5,
+      scarcityScore: 0,
+      sectorScore: 20,
+      totalScore: 25
     }
   ])(
     'The scoring API has been updated - answer to $planningAbstractionDesc selected - returned score percentage for planningAbstraction is $planningAbstractionScore%',
